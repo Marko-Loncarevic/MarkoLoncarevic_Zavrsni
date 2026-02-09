@@ -236,7 +236,7 @@
                 <span class="navbar-toggler-icon-modern"></span>
             </button>
             <div class="collapse navbar-collapse navbar-collapse-modern" id="navbarModern">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   
                     <li class="nav-item nav-item-modern">
                         <a class="nav-link nav-link-modern" href="korisnici.php">
@@ -253,8 +253,14 @@
                             <i class="fas fa-car-side"></i> Vozila
                         </a>
                     </li>
+                    <li class="nav-item nav-item-modern">
+                        <a class="nav-link nav-link-modern" href="statistika.php">
+                            <i class="fas fa-chart-line"></i> Statistika
+                        </a>
+                    </li>
                   
                 </ul>
+                
                 
                 
             </div>

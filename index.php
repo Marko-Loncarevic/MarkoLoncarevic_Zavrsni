@@ -1,21 +1,41 @@
 <!doctype html>
 <html lang="en">
 <head>
-   
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-
     <title>Pregled vozila</title>
+    <style>
+        .vehicle-card {
+            transition: transform 0.2s;
+        }
+        .vehicle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .vehicle-card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        .no-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px 8px 0 0;
+            color: white;
+            font-size: 3rem;
+        }
+    </style>
 </head>
 <body>
 
-<?php
-include("navigacija.php"); 
-?>
+<?php include("navigacija.php"); ?>
 
 <?php
 if (isset($_GET['success'])) {
@@ -29,22 +49,15 @@ if (isset($_GET['error'])) {
 }
 ?>
 
-
-
 <div class="container mt-4">
     <div class="row" id="vehicleCards">
         <?php
         include("db__connection.php");
 
         $query = "SELECT 
-            v.IDVozilo,
-            v.Naziv,
-            v.Model,
-            v.CijenaKoristenjaDnevno,
-            v.Raspolozivost,
-            ka.Godiste,
-            ka.Kilometraza,
-            ka.Registracija,
+            v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, v.Raspolozivost,
+            ka.Godiste, ka.Kilometraza, ka.Registracija,
+            vs.PutanjaSlike,
             CASE WHEN EXISTS (
                 SELECT 1 FROM rezervacije r 
                 WHERE r.VoziloID = v.IDVozilo 
@@ -53,10 +66,9 @@ if (isset($_GET['error'])) {
                     (r.DatumPocetka >= NOW())
                 )
             ) THEN 1 ELSE 0 END AS ImaAktivnuRezervaciju
-        FROM 
-            vozila v
-        JOIN 
-            karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID;";
+        FROM vozila v
+        JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
+        LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1";
 
         $result = mysqli_query($db, $query) or die("Greška u SQL upitu: " . mysqli_error($db));
 
@@ -67,7 +79,18 @@ if (isset($_GET['error'])) {
                 <div class="card vehicle-card" data-id="' . $row["IDVozilo"] . '" 
                      data-name="' . $row["Naziv"] . ' ' . $row["Model"] . '" 
                      data-price="' . $row["CijenaKoristenjaDnevno"] . '"
-                     data-available="' . ($isAvailable ? '1' : '0') . '">
+                     data-available="' . ($isAvailable ? '1' : '0') . '">';
+            
+            // Display image or placeholder
+            if ($row["PutanjaSlike"]) {
+                echo '<img src="' . htmlspecialchars($row["PutanjaSlike"]) . '" class="vehicle-card-image" alt="' . htmlspecialchars($row["Naziv"]) . '">';
+            } else {
+                echo '<div class="no-image-placeholder">
+                        <i class="fas fa-car"></i>
+                      </div>';
+            }
+            
+            echo '
                     <div class="card-body">
                         <h5 class="card-title">' . $row["Naziv"] . ' ' . $row["Model"] . '</h5>
                         <p class="card-text">
@@ -79,7 +102,7 @@ if (isset($_GET['error'])) {
                             ($isAvailable ? '<span class="text-success">Dostupno</span>' : 
                             '<span class="text-danger">Nije dostupno</span>') . '
                         </p>
-                        <button class="btn btn-primary btn-reserve" ' . 
+                        <button class="btn btn-primary btn-reserve w-100" ' . 
                         (!$isAvailable ? 'disabled title="Vozilo nije dostupno za rezervaciju"' : '') . '>
                             Rezerviraj
                         </button>
@@ -92,12 +115,12 @@ if (isset($_GET['error'])) {
 </div>
 
 <!-- Reservation Modal -->
-<div class="modal fade" id="addReservationModal" tabindex="-1" aria-labelledby="addReservationModalLabel" aria-hidden="true">
+<div class="modal fade" id="addReservationModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addReservationModalLabel">Dodaj novu rezervaciju</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title">Dodaj novu rezervaciju</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form id="addReservationForm" action="dodaj_rezervaciju.php" method="POST">
       <div class="modal-body">
@@ -128,17 +151,14 @@ if (isset($_GET['error'])) {
             <input type="datetime-local" class="form-control" id="doKada" name="doKada" required>
           </div>
           <div class="mb-3">
-  <label for="ukupnaCijena" class="form-label">Ukupna cijena (€)</label>
-  <input type="text" class="form-control" id="ukupnaCijena" name="ukupnaCijena" readonly>
-</div>
+            <label for="ukupnaCijena" class="form-label">Ukupna cijena (€)</label>
+            <input type="text" class="form-control" id="ukupnaCijena" name="ukupnaCijena" readonly>
+          </div>
       </div>
-     
-
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zatvori</button>
         <button type="submit" class="btn btn-primary">Spremi rezervaciju</button>
       </div>
-      
       </form>
     </div>
   </div>
@@ -147,7 +167,6 @@ if (isset($_GET['error'])) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Handle reservation button clicks
     document.querySelectorAll(".btn-reserve").forEach(btn => {
         btn.addEventListener("click", function(e) {
             e.stopPropagation();
@@ -160,22 +179,17 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             
             const vehicleId = card.getAttribute("data-id");
-            const vehicleName = card.getAttribute("data-name");
             const vehiclePrice = card.getAttribute("data-price");
             
-            // Set values in reservation modal
             document.getElementById("selectedVehicleId").value = vehicleId;
             document.getElementById("cijenaKoristenjaDnevno").value = vehiclePrice;
             
-            // Show reservation modal
             const reservationModal = new bootstrap.Modal(document.getElementById("addReservationModal"));
             reservationModal.show();
         });
     });
 
-    // Date validation
     document.getElementById('addReservationForm').addEventListener('submit', function(e) {
-        const vehicleId = document.getElementById("selectedVehicleId").value;
         const odKada = new Date(document.getElementById('odKada').value);
         const doKada = new Date(document.getElementById('doKada').value);
         
@@ -186,28 +200,25 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
 function izracunajUkupnuCijenu() {
     const cijenaPoDanu = parseFloat(document.getElementById("cijenaKoristenjaDnevno").value);
     const odKada = new Date(document.getElementById("odKada").value);
     const doKada = new Date(document.getElementById("doKada").value);
     
     if (!isNaN(cijenaPoDanu) && odKada && doKada && doKada > odKada) {
-      const razlikaUDanima = Math.ceil((doKada - odKada) / (1000 * 60 * 60 * 24));
-      const ukupnaCijena = cijenaPoDanu * razlikaUDanima;
-      document.getElementById("ukupnaCijena").value = ukupnaCijena.toFixed(2);
+        const razlikaUDanima = Math.ceil((doKada - odKada) / (1000 * 60 * 60 * 24));
+        const ukupnaCijena = cijenaPoDanu * razlikaUDanima;
+        document.getElementById("ukupnaCijena").value = ukupnaCijena.toFixed(2);
     } else {
-      document.getElementById("ukupnaCijena").value = '';
+        document.getElementById("ukupnaCijena").value = '';
     }
-  }
+}
 
-  document.getElementById("odKada").addEventListener("change", izracunajUkupnuCijenu);
-  document.getElementById("doKada").addEventListener("change", izracunajUkupnuCijenu);
-  document.getElementById("cijenaKoristenjaDnevno").addEventListener("input", izracunajUkupnuCijenu);
+document.getElementById("odKada").addEventListener("change", izracunajUkupnuCijenu);
+document.getElementById("doKada").addEventListener("change", izracunajUkupnuCijenu);
+document.getElementById("cijenaKoristenjaDnevno").addEventListener("input", izracunajUkupnuCijenu);
 </script>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
 </body>
 </html>

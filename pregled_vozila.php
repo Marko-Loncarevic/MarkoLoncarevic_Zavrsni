@@ -8,37 +8,81 @@
     <link rel="stylesheet" href="pregled_vozila.css">
     <title>Pregled vozila</title>
     <style>
-        .badge-available {
-            background-color: #28a745;
-            color: white;
-        }
-        .badge-unavailable {
-            background-color: #dc3545;
-            color: white;
-        }
-        .badge-reserved {
-            background-color: #ffc107;
-            color: black;
-        }
-        .action-btns .btn {
-            margin-right: 5px;
-        }
-       
-        .hover-shadow:hover {
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            transition: box-shadow 0.3s ease;
-        }
-        .stat-card {
-            border-left: 4px solid;
-            transition: transform 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
+        .badge-available { background-color: #28a745; color: white; }
+        .badge-unavailable { background-color: #dc3545; color: white; }
+        .badge-reserved { background-color: #ffc107; color: black; }
+        .action-btns .btn { margin-right: 5px; }
+        .hover-shadow:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); transition: box-shadow 0.3s ease; }
+        .stat-card { border-left: 4px solid; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
         .stat-card-1 { border-left-color: #28a745; }
         .stat-card-2 { border-left-color: #17a2b8; }
         .stat-card-3 { border-left-color: #6f42c1; }
         .stat-card-4 { border-left-color: #fd7e14; }
+        
+        .vehicle-photo-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #dee2e6;
+        }
+        .vehicle-photo-thumbnail:hover {
+            border-color: #0d6efd;
+            transform: scale(1.05);
+        }
+        .no-photo-placeholder {
+            width: 60px;
+            height: 60px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        .photo-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .photo-gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .photo-gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .photo-gallery-item .delete-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .photo-gallery-item .main-photo-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -65,11 +109,11 @@
             </button>
         </div>
 
+        <!-- Statistics Cards -->
         <div class="row mb-4">
             <?php
             include("db__connection.php");
             
-     
             $mostRentedQuery = "SELECT v.IDVozilo, v.Naziv, v.Model, 
                               COUNT(r.IDRezervacija) AS BrojRezervacija,
                               SUM(DATEDIFF(r.DatumZavrsetka, r.DatumPocetka)) AS UkupnoDana
@@ -81,7 +125,6 @@
             $mostRentedResult = mysqli_query($db, $mostRentedQuery);
             $mostRented = mysqli_fetch_assoc($mostRentedResult);
             
-       
             $highestEarningQuery = "SELECT v.IDVozilo, v.Naziv, v.Model, 
                                    SUM(r.UkupnaCijena) AS UkupnaZarada
                                    FROM vozila v
@@ -92,7 +135,6 @@
             $highestEarningResult = mysqli_query($db, $highestEarningQuery);
             $highestEarning = mysqli_fetch_assoc($highestEarningResult);
             
-   
             $statsQuery = "SELECT 
                           SUM(DATEDIFF(r.DatumZavrsetka, r.DatumPocetka)) AS UkupnoDana,
                           SUM(r.UkupnaCijena) AS UkupnaZarada
@@ -100,14 +142,11 @@
             $statsResult = mysqli_query($db, $statsQuery);
             $stats = mysqli_fetch_assoc($statsResult);
             
-  
             $currentDate = date('Y-m-d');
             $rentedQuery = "SELECT COUNT(DISTINCT VoziloID) AS TrenutnoIznajmljeno
                            FROM rezervacije
-                           WHERE StatusRezervacije = 'aktivna'
-                           ";
+                           WHERE StatusRezervacije = 'aktivna'";
             $stmt = mysqli_prepare($db, $rentedQuery);
-           
             mysqli_stmt_execute($stmt);
             $rentedResult = mysqli_stmt_get_result($stmt);
             $rentedCount = mysqli_fetch_assoc($rentedResult);
@@ -165,15 +204,16 @@
             </div>
         </div>
 
-        <div class="modal fade" id="addVehicleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addVehicleModalLabel" aria-hidden="true">
+        <!-- Add Vehicle Modal -->
+        <div class="modal fade" id="addVehicleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addVehicleModalLabel">Dodaj novo vozilo</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title">Dodaj novo vozilo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="addVehicleForm" action="dodaj_vozilo.php" method="POST">
+                        <form id="addVehicleForm" action="dodaj_vozilo.php" method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="nazivVozila" class="form-label">Naziv vozila</label>
                                 <input type="text" class="form-control" id="nazivVozila" name="nazivVozila" maxlength="25" required>
@@ -199,12 +239,9 @@
                                 <input type="text" class="form-control" id="registracija" name="registracija">
                             </div>
                             <div class="mb-3">
-                                <label for="raspolozivost" class="form-label">Raspoloživost</label>
-                                <select class="form-control" id="raspolozivost" name="raspolozivost" required>
-                                    <option value="Dostupno" selected>Dostupno</option>
-                                    <option value="Nije dostupno">Nije dostupno</option>
-                                    <option value="Rezervirano">Rezervirano</option>
-                                </select>
+                                <label for="vehicle_photo" class="form-label">Slika vozila</label>
+                                <input type="file" class="form-control" id="vehicle_photo" name="vehicle_photo" accept="image/*">
+                                <small class="text-muted">Podržani formati: JPG, PNG, GIF, WEBP (max 5MB)</small>
                             </div>
                         </form>
                     </div>
@@ -216,13 +253,46 @@
             </div>
         </div>
 
-    
+        <!-- Photo Gallery Modal -->
+        <div class="modal fade" id="photoGalleryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Galerija slika</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="upload_photo.php" method="POST" enctype="multipart/form-data" class="mb-4">
+                            <input type="hidden" id="galleryVehicleId" name="voziloID">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="file" class="form-control" name="vehicle_photo" accept="image/*" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="jeGlavna" id="jeGlavna">
+                                        <label class="form-check-label" for="jeGlavna">Glavna slika</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">
+                                <i class="fas fa-upload"></i> Dodaj sliku
+                            </button>
+                        </form>
+                        <div id="photoGalleryContent" class="photo-gallery-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicles Table -->
         <div class="card shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
+                                <th>Slika</th>
                                 <th>ID</th>
                                 <th>Naziv</th>
                                 <th>Model</th>
@@ -236,51 +306,37 @@
                         </thead>
                         <tbody>
                             <?php
-                           
-$resetStatusQuery = "UPDATE vozila SET Raspolozivost = 'Dostupno'";
-mysqli_query($db, $resetStatusQuery);
+                            $resetStatusQuery = "UPDATE vozila SET Raspolozivost = 'Dostupno'";
+                            mysqli_query($db, $resetStatusQuery);
 
+                            $unavailableQuery = "UPDATE vozila v
+                                                 JOIN rezervacije r ON v.IDVozilo = r.VoziloID 
+                                                 SET v.Raspolozivost = 'Nije dostupno'
+                                                 WHERE r.StatusRezervacije = 'aktivna'
+                                                   AND CURDATE() BETWEEN r.DatumPocetka AND r.DatumZavrsetka";
+                            mysqli_query($db, $unavailableQuery);
 
-$unavailableQuery = "UPDATE vozila v
-                     JOIN rezervacije r ON v.IDVozilo = r.VoziloID 
-                     SET v.Raspolozivost = 'Nije dostupno'
-                     WHERE r.StatusRezervacije = 'aktivna'
-                       AND CURDATE() BETWEEN r.DatumPocetka AND r.DatumZavrsetka";
-mysqli_query($db, $unavailableQuery);
+                            $reservedQuery = "UPDATE vozila v
+                                              JOIN rezervacije r ON v.IDVozilo = r.VoziloID
+                                              SET v.Raspolozivost = 'Rezervirano'
+                                              WHERE r.StatusRezervacije = 'aktivna'
+                                                AND CURDATE() < r.DatumPocetka";
+                            mysqli_query($db, $reservedQuery);
 
-
-$reservedQuery = "UPDATE vozila v
-                  JOIN rezervacije r ON v.IDVozilo = r.VoziloID
-                  SET v.Raspolozivost = 'Rezervirano'
-                  WHERE r.StatusRezervacije = 'aktivna'
-                    AND CURDATE() < r.DatumPocetka";
-mysqli_query($db, $reservedQuery);
-
-                        
-                          
                             $query = "SELECT 
-                                v.IDVozilo,
-                                v.Naziv,
-                                v.Model,
-                                v.CijenaKoristenjaDnevno,
-                                v.Raspolozivost,
-                                ka.Godiste,
-                                ka.Kilometraza,
-                                ka.Registracija,
+                                v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, v.Raspolozivost,
+                                ka.Godiste, ka.Kilometraza, ka.Registracija,
                                 COUNT(r.IDRezervacija) AS BrojRezervacija,
                                 SUM(DATEDIFF(r.DatumZavrsetka, r.DatumPocetka)) AS UkupnoDana,
-                                SUM(r.UkupnaCijena) AS UkupnaZarada
-                            FROM 
-                                vozila v
-                            LEFT JOIN 
-                                karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
-                            LEFT JOIN
-                                rezervacije r ON v.IDVozilo = r.VoziloID
-                            GROUP BY
-                                v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, 
-                                v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija
-                            ORDER BY 
-                                v.Naziv, v.Model";
+                                SUM(r.UkupnaCijena) AS UkupnaZarada,
+                                vs.PutanjaSlike AS GlavnaSlika
+                            FROM vozila v
+                            LEFT JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
+                            LEFT JOIN rezervacije r ON v.IDVozilo = r.VoziloID
+                            LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1
+                            GROUP BY v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, 
+                                     v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija, vs.PutanjaSlike
+                            ORDER BY v.Naziv, v.Model";
 
                             $result = mysqli_query($db, $query) or die("Greška u SQL upitu: " . mysqli_error($db));
                             
@@ -301,6 +357,18 @@ mysqli_query($db, $reservedQuery);
                                 }
                             ?>
                                 <tr class="hover-shadow">
+                                    <td>
+                                        <?php if ($row['GlavnaSlika']): ?>
+                                            <img src="<?= htmlspecialchars($row['GlavnaSlika']) ?>" 
+                                                 class="vehicle-photo-thumbnail" 
+                                                 alt="Vehicle photo"
+                                                 onclick="openPhotoGallery(<?= $row['IDVozilo'] ?>)">
+                                        <?php else: ?>
+                                            <div class="no-photo-placeholder" onclick="openPhotoGallery(<?= $row['IDVozilo'] ?>)">
+                                                <i class="fas fa-camera"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= $row['IDVozilo'] ?></td>
                                     <td>
                                         <?= htmlspecialchars($row['Naziv']) ?>
@@ -321,10 +389,20 @@ mysqli_query($db, $reservedQuery);
                                         </span>
                                     </td>
                                     <td class="action-btns">
-                                        <a href="edit_vozilo.php?id=<?= $row['IDVozilo'] ?>" class="btn btn-sm btn-outline-primary" title="Uredi">
+                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                onclick="openPhotoGallery(<?= $row['IDVozilo'] ?>)" 
+                                                title="Slike">
+                                            <i class="fas fa-images"></i>
+                                        </button>
+                                        <a href="edit_vozilo.php?id=<?= $row['IDVozilo'] ?>" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Uredi">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="obrisi_vozilo.php?id=<?= $row['IDVozilo'] ?>" class="btn btn-sm btn-outline-danger" title="Obriši" onclick="return confirm('Jeste li sigurni da želite obrisati ovo vozilo?')">
+                                        <a href="obrisi_vozilo.php?id=<?= $row['IDVozilo'] ?>" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           title="Obriši" 
+                                           onclick="return confirm('Jeste li sigurni da želite obrisati ovo vozilo?')">
                                             <i class="fas fa-trash-alt"></i>
                                         </a>
                                         <?php if ($row['BrojRezervacija'] > 0): ?>
@@ -347,17 +425,14 @@ mysqli_query($db, $reservedQuery);
         </div>
     </div>
 
-  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-
         setTimeout(function() {
             var alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
                 new bootstrap.Alert(alert).close();
             });
         }, 5000);
-        
 
         var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
@@ -365,6 +440,44 @@ mysqli_query($db, $reservedQuery);
                 trigger: 'hover focus'
             });
         });
+
+        function openPhotoGallery(vehicleId) {
+            document.getElementById('galleryVehicleId').value = vehicleId;
+            
+            // Fetch photos for this vehicle
+            fetch('get_vehicle_photos.php?id=' + vehicleId)
+                .then(response => response.json())
+                .then(data => {
+                    const gallery = document.getElementById('photoGalleryContent');
+                    gallery.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        gallery.innerHTML = '<p class="text-muted">Nema slika za ovo vozilo</p>';
+                    } else {
+                        data.forEach(photo => {
+                            const photoDiv = document.createElement('div');
+                            photoDiv.className = 'photo-gallery-item';
+                            photoDiv.innerHTML = `
+                                <img src="${photo.PutanjaSlike}" alt="Vehicle photo">
+                                ${photo.JeGlavna ? '<span class="main-photo-badge">Glavna</span>' : ''}
+                                <button class="delete-photo" onclick="deletePhoto(${photo.IDSlika})" title="Obriši">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            gallery.appendChild(photoDiv);
+                        });
+                    }
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('photoGalleryModal'));
+                    modal.show();
+                });
+        }
+
+        function deletePhoto(photoId) {
+            if (confirm('Jeste li sigurni da želite obrisati ovu sliku?')) {
+                window.location.href = 'delete_photo.php?id=' + photoId;
+            }
+        }
     </script>
 </body>
 </html>

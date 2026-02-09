@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 30, 2025 at 02:05 PM
+-- Generation Time: Feb 07, 2026 at 11:46 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,10 +45,11 @@ INSERT INTO `karakteristike_automobila` (`Godiste`, `Kilometraza`, `Registracija
 (2020, 25000, 'DA234GH', 53),
 (2016, 80000, 'DA567JK', 54),
 (2018, 45000, 'DA890LM', 55),
-(2019, 35000, 'DA345NP', 56),
 (2021, 20000, 'DA678QS', 57),
 (2015, 90000, 'DA901TU', 58),
-(2020, 40000, 'DA112VX', 59);
+(2020, 54000, 'DA782HJ', 63),
+(2020, 121212, 'DA782HJ', 64),
+(1, 1, 'DA782HJ', 65);
 
 -- --------------------------------------------------------
 
@@ -69,16 +70,15 @@ CREATE TABLE `korisnici` (
 
 INSERT INTO `korisnici` (`IDKorisnici`, `ImeKorisnika`, `PrezimeKorisnika`, `KontaktKorisnika`) VALUES
 (1, 'Ivan', 'Horvat', 'ivan.horvat@gmail.com'),
-(2, 'Ana', 'Kovačić', 'ana,kovacic@gmail.com'),
-(3, 'Marko', 'Novak', 'marko,novak@gmail.com'),
+(2, 'Ana', 'Kovačić', 'ana.kovacic@gmail.com'),
+(3, 'Marko', 'Novak', 'marko.novak@gmail.com'),
 (4, 'Lucija', 'Marić', 'lucija.maric@gmail.com'),
 (5, 'Petar', 'Babić', 'petar.babic@gmail.com'),
-(6, 'Ivana', 'Jurić', 'ivana.juric@gmail.com'),
 (7, 'Karlo', 'Vuković', 'karlo.vukovic@gmail.com'),
 (8, 'Marija', 'Božić', 'marija.bozic@gmail.com'),
 (9, 'Josip', 'Pavlović', 'josip.pavlovic@gmail.com'),
 (10, 'Matej', 'Knežević', 'mate.knezevicj@gmail.com'),
-(33, 'Marko', 'Loncarevicx', 'marko.loncarevic@gmail.com');
+(35, 'Marko', 'Loncarevic', 'marko.loncarevic@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -106,15 +106,14 @@ INSERT INTO `rezervacije` (`IDRezervacija`, `VoziloID`, `KorisnikID`, `DatumReze
 (57, 51, 2, '2025-03-29 16:17:27', '2025-03-05 09:00:00', '2025-03-10 17:00:00', 250.00, 'Zavrsena'),
 (58, 52, 3, '2025-03-29 16:17:27', '2025-03-09 16:00:00', '2025-03-11 20:00:00', 100.00, 'Zavrsena'),
 (59, 53, 4, '2025-03-29 16:17:27', '2025-03-15 08:00:00', '2025-03-22 08:00:00', 490.00, 'Zavrsena'),
-(60, 54, 5, '2025-03-29 16:17:27', '2025-03-20 14:00:00', '2025-03-22 14:00:00', 100.00, 'otkazana'),
-(61, 59, 1, '2025-03-29 16:20:12', '2025-03-29 16:20:00', '2025-03-30 16:20:00', 70.00, 'aktivna'),
-(62, 50, 1, '2025-03-29 16:29:27', '2025-03-29 16:28:00', '2025-03-31 16:28:00', 100.00, 'aktivna'),
-(65, 58, 1, '2025-03-30 13:58:24', '2025-03-30 13:58:00', '2025-03-31 13:58:00', 50.00, 'aktivna'),
-(66, 59, 1, '2025-03-30 13:58:56', '2025-03-30 13:58:00', '2025-03-31 13:58:00', 70.00, 'aktivna'),
-(67, 52, 5, '2025-03-30 13:59:20', '2025-03-30 13:59:00', '2025-03-31 13:59:00', 70.00, 'aktivna'),
-(68, 58, 1, '2025-03-30 13:59:46', '2025-03-30 13:59:00', '2025-03-31 13:59:00', 50.00, 'aktivna'),
-(69, 57, 33, '2025-03-30 14:01:06', '2025-03-29 14:00:00', '2025-03-31 14:01:00', 100.00, 'aktivna'),
-(70, 51, 1, '2025-03-30 14:02:03', '2025-03-29 14:02:00', '2025-03-31 14:02:00', 120.00, 'aktivna');
+(62, 50, 1, '2025-03-29 16:29:27', '2025-03-29 16:28:00', '2025-03-31 16:28:00', 100.00, 'Zavrsena'),
+(65, 58, 1, '2025-03-30 13:58:24', '2025-03-30 13:58:00', '2025-03-31 13:58:00', 50.00, 'Zavrsena'),
+(67, 52, 5, '2025-03-30 13:59:20', '2025-03-30 13:59:00', '2025-03-31 13:59:00', 70.00, 'Zavrsena'),
+(68, 58, 1, '2025-03-30 13:59:46', '2025-03-30 13:59:00', '2025-03-31 13:59:00', 50.00, 'Zavrsena'),
+(70, 51, 1, '2025-03-30 14:02:03', '2025-03-29 14:02:00', '2025-03-31 14:02:00', 120.00, 'Zavrsena'),
+(81, 57, 1, '2025-04-07 17:29:49', '2025-04-07 17:29:00', '2025-04-09 17:29:00', 100.00, 'Zavrsena'),
+(83, 63, 9, '2025-05-26 19:27:27', '2025-05-26 19:27:00', '2025-05-28 19:27:00', 246.00, 'Zavrsena'),
+(84, 58, 2, '2026-01-09 17:21:31', '2026-01-09 17:21:00', '2026-01-11 17:21:00', 100.00, 'Zavrsena');
 
 -- --------------------------------------------------------
 
@@ -141,10 +140,36 @@ INSERT INTO `vozila` (`IDVozilo`, `Naziv`, `Model`, `CijenaKoristenjaDnevno`, `R
 (53, 'Mazda', 'CX5', 50, 'Dostupno'),
 (54, 'Opel', 'Astra', 50, 'Dostupno'),
 (55, 'Fiat', 'Punto', 50, 'Dostupno'),
-(56, 'Renault', 'Clio', 50, 'Dostupno'),
 (57, 'Volkswagen', 'Polo', 50, 'Dostupno'),
 (58, 'Fiat', 'Panda', 50, 'Dostupno'),
-(59, 'Renault', 'Megane', 70, 'Dostupno');
+(63, 'Mercedes', 'A klasa', 123, 'Dostupno'),
+(64, 'Mazda', 'cx 30', 23, 'Dostupno'),
+(65, 'asa', 'as', 1, 'Dostupno');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vozila_slike`
+--
+
+CREATE TABLE `vozila_slike` (
+  `IDSlika` int(11) NOT NULL,
+  `VoziloID` int(11) NOT NULL,
+  `PutanjaSlike` varchar(255) NOT NULL,
+  `JeGlavna` tinyint(1) DEFAULT 0,
+  `DatumDodavanja` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vozila_slike`
+--
+
+INSERT INTO `vozila_slike` (`IDSlika`, `VoziloID`, `PutanjaSlike`, `JeGlavna`, `DatumDodavanja`) VALUES
+(1, 64, 'uploads/vehicles/vehicle_64_6977ac333edea0.22675119.png', 1, '2026-01-26 18:02:27'),
+(4, 55, 'uploads/vehicles/vehicle_55_6977ac6e9ab833.42923598.png', 0, '2026-01-26 18:03:26'),
+(11, 55, 'uploads/vehicles/vehicle_55_6977cd7d4458a2.05432875.png', 0, '2026-01-26 20:24:29'),
+(12, 58, 'uploads/vehicles/vehicle_58_6977cd8543bd87.38488696.png', 0, '2026-01-26 20:24:37'),
+(13, 65, 'uploads/vehicles/vehicle_65_6977cdae3a6876.69956330.png', 1, '2026-01-26 20:25:18');
 
 --
 -- Indexes for dumped tables
@@ -154,7 +179,6 @@ INSERT INTO `vozila` (`IDVozilo`, `Naziv`, `Model`, `CijenaKoristenjaDnevno`, `R
 -- Indexes for table `karakteristike_automobila`
 --
 ALTER TABLE `karakteristike_automobila`
-  ADD PRIMARY KEY (`VoziloID`),
   ADD KEY `VoziloID` (`VoziloID`);
 
 --
@@ -178,6 +202,13 @@ ALTER TABLE `vozila`
   ADD PRIMARY KEY (`IDVozilo`);
 
 --
+-- Indexes for table `vozila_slike`
+--
+ALTER TABLE `vozila_slike`
+  ADD PRIMARY KEY (`IDSlika`),
+  ADD KEY `VoziloID` (`VoziloID`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -185,25 +216,31 @@ ALTER TABLE `vozila`
 -- AUTO_INCREMENT for table `karakteristike_automobila`
 --
 ALTER TABLE `karakteristike_automobila`
-  MODIFY `VoziloID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `VoziloID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `korisnici`
 --
 ALTER TABLE `korisnici`
-  MODIFY `IDKorisnici` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `IDKorisnici` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `rezervacije`
 --
 ALTER TABLE `rezervacije`
-  MODIFY `IDRezervacija` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `IDRezervacija` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT for table `vozila`
 --
 ALTER TABLE `vozila`
-  MODIFY `IDVozilo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `IDVozilo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+
+--
+-- AUTO_INCREMENT for table `vozila_slike`
+--
+ALTER TABLE `vozila_slike`
+  MODIFY `IDSlika` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables
@@ -223,6 +260,12 @@ ALTER TABLE `rezervacije`
   ADD CONSTRAINT `fk_rezervacije_vozilo` FOREIGN KEY (`VoziloID`) REFERENCES `vozila` (`IDVozilo`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `rezervacije_ibfk_1` FOREIGN KEY (`VoziloID`) REFERENCES `vozila` (`IDVozilo`),
   ADD CONSTRAINT `rezervacije_ibfk_2` FOREIGN KEY (`KorisnikID`) REFERENCES `korisnici` (`IDKorisnici`);
+
+--
+-- Constraints for table `vozila_slike`
+--
+ALTER TABLE `vozila_slike`
+  ADD CONSTRAINT `fk_slike_vozilo` FOREIGN KEY (`VoziloID`) REFERENCES `vozila` (`IDVozilo`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
