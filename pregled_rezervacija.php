@@ -4,17 +4,276 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="pregled_rezervacija.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Pregled rezervacija</title>
-    
+    <style>
+        /* ===== MODERN PASTEL PALETTE ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #F5F7F4;
+            --bg-secondary: #E8EDE7;
+            --text-primary: #3d4a3e;
+            --text-secondary: #6B7B6E;
+            --accent-green: #68896B;
+            --accent-sage: #8FA67E;
+            --accent-light: #C8D5B9;
+            --accent-taupe: #A0937D;
+            --white: #ffffff;
+            --status-active: #88B49A;
+            --status-completed: #D98B8B;
+            --status-cancelled: #C48B7C;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            padding: 2rem;
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: var(--accent-light);
+            border: 1px solid var(--accent-sage);
+            color: var(--text-primary);
+            border-radius: 12px;
+        }
+        .alert-danger {
+            background-color: #f4ddd4;
+            border: 1px solid var(--status-cancelled);
+            color: var(--text-primary);
+            border-radius: 12px;
+        }
+
+        /* Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Statistics Cards */
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--accent-light);
+            transition: all 0.3s;
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .stat-card h6 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .stat-card h2 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            margin: 0 0 0.5rem 0;
+        }
+        .stat-card .stat-subtext {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .stat-card .badge {
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+        }
+        .stat-card-1 { border-left: 4px solid var(--status-active); }
+        .stat-card-2 { border-left: 4px solid var(--status-completed); }
+        .stat-card-3 { border-left: 4px solid var(--accent-sage); }
+        .stat-card-4 { border-left: 4px solid var(--accent-taupe); }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status-aktivna {
+            background-color: var(--status-active);
+            color: white;
+        }
+        .status-zavrsena {
+            background-color: var(--status-completed);
+            color: white;
+        }
+        .status-otkazana {
+            background-color: var(--status-cancelled);
+            color: white;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--accent-light);
+            margin-bottom: 2rem;
+        }
+        .filter-section .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .filter-section .form-select,
+        .filter-section .form-control {
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-light);
+            border-radius: 12px;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
+        }
+        .filter-section .form-select:focus,
+        .filter-section .form-control:focus {
+            border-color: var(--accent-sage);
+            box-shadow: 0 0 0 4px rgba(143, 166, 126, 0.1);
+        }
+ .filter-section .btn-secondary {
+            background-color: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+        }
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--accent-green);
+            border: none;
+            color: white;
+            font-weight: 500;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-sage);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: var(--accent-light);
+        }
+        
+
+        /* Table Card */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--accent-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .table {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .table thead {
+            background-color: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-light);
+        }
+        .table thead th {
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border: none;
+        }
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e8ede7;
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr {
+            transition: background 0.2s;
+        }
+        .table tbody tr:hover {
+            background-color: #fafbfa;
+        }
+
+        /* Action Buttons */
+        .action-btns .btn {
+            margin-right: 0.25rem;
+            border-radius: 8px;
+            padding: 0.4rem 0.7rem;
+        }
+        .btn-outline-danger {
+            color: var(--status-cancelled);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-danger:hover {
+            background-color: var(--status-cancelled);
+            border-color: var(--status-cancelled);
+            color: white;
+        }
+        .btn-outline-secondary {
+            color: var(--text-secondary);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--text-secondary);
+            border-color: var(--text-secondary);
+            color: white;
+        }
+        .btn-outline-danger {
+            color: #C48B7C;
+            border-color: var(--accent-light);
+        }
+        .btn-outline-danger:hover {
+            background-color: #C48B7C;
+            border-color: #C48B7C;
+            color: white;
+        }
+
+        .badge-duration {
+            background-color: var(--accent-sage);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 <?php include("navigacija.php"); ?>
     <div class="container-fluid mt-4">
-      
-
-        <h2 class="mb-4 text-center">Pregled rezervacija</h2>
-
         <?php if (isset($_GET['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show">
                 <?= htmlspecialchars($_GET['success']) ?>
@@ -29,39 +288,15 @@
             </div>
         <?php endif; ?>
 
-
-        <div class="filter-section mb-4">
-            <form method="get" action="">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="">Svi statusi</option>
-                            <option value="Aktivna" <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna') ? 'selected' : '' ?>>Aktivna</option>
-                            <option value="Zavrsena" <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena') ? 'selected' : '' ?>>Završena</option>
-                           
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Datum od</label>
-                        <input type="date" class="form-control" name="date_from" value="<?= $_GET['date_from'] ?? '' ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Datum do</label>
-                        <input type="date" class="form-control" name="date_to" value="<?= $_GET['date_to'] ?? '' ?>">
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">Filtriraj</button>
-                        <a href="pregled_rezervacija.php" class="btn btn-secondary">Resetiraj</a>
-                    </div>
-                </div>
-            </form>
+        <div class="page-header">
+            <h1>Pregled rezervacija</h1>
         </div>
 
-        <?php
+       
+<?php
         include("db__connection.php");
         
- 
+        // Update statuses
         $currentDate = date('Y-m-d');
         
         $updateQuery = "UPDATE rezervacije r
@@ -74,7 +309,6 @@
         mysqli_stmt_bind_param($stmt, "s", $currentDate);
         mysqli_stmt_execute($stmt);
         
-      
         $updateQuery2 = "UPDATE rezervacije r
                         JOIN vozila v ON r.VoziloID = v.IDVozilo
                         SET r.StatusRezervacije = 'Aktivna',
@@ -84,24 +318,132 @@
         $stmt2 = mysqli_prepare($db, $updateQuery2);
         mysqli_stmt_bind_param($stmt2, "s", $currentDate);
         mysqli_stmt_execute($stmt2);
+
+        // Get statistics
+        $statsQuery = "SELECT 
+            COUNT(CASE WHEN StatusRezervacije = 'Aktivna' THEN 1 END) as AktivneRezervacije,
+            COALESCE(SUM(CASE WHEN StatusRezervacije = 'Aktivna' THEN UkupnaCijena END), 0) as AktivnaVrijednost,
+            COUNT(CASE WHEN StatusRezervacije = 'Zavrsena' THEN 1 END) as ZavrseneRezervacije,
+            COALESCE(SUM(CASE WHEN StatusRezervacije = 'Zavrsena' THEN UkupnaCijena END), 0) as ZavrsenaProdaja,
+            COALESCE(SUM(UkupnaCijena), 0) as UkupniPrihod,
+            COALESCE(AVG(UkupnaCijena), 0) as ProsjecnaCijena,
+            COUNT(CASE WHEN StatusRezervacije = 'Aktivna' AND DatumPocetka > NOW() THEN 1 END) as PredstojećeRezervacije
+        FROM rezervacije";
+        $statsResult = mysqli_query($db, $statsQuery);
+        $stats = mysqli_fetch_assoc($statsResult);
         ?>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Korisnik</th>
-                        <th>Vozilo</th>
-                        <th>Datum rezervacije</th>
-                        <th>Period</th>
-                        <th>Trajanje</th>
-                        <th>Cijena</th>
-                        <th>Status</th>
-                        <th>Akcije</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-1">
+                    <div class="card-body">
+                        <h6>Aktivne rezervacije</h6>
+                        <h2><?= $stats['AktivneRezervacije'] ?? 0 ?></h2>
+                        <span class="badge status-aktivna">
+                            <?= number_format($stats['AktivnaVrijednost'] ?? 0, 2) ?> €
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-2">
+                    <div class="card-body">
+                        <h6>Završene rezervacije</h6>
+                        <h2><?= $stats['ZavrseneRezervacije'] ?? 0 ?></h2>
+                        <span class="badge status-zavrsena">
+                            <?= number_format($stats['ZavrsenaProdaja'] ?? 0, 2) ?> €
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-3">
+                    <div class="card-body">
+                        <h6>Ukupan prihod</h6>
+                        <h2><?= number_format($stats['UkupniPrihod'] ?? 0, 2) ?> €</h2>
+                        <small class="stat-subtext">Prosjek: <?= number_format($stats['ProsjecnaCijena'] ?? 0, 2) ?> €</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-4">
+                    <div class="card-body">
+                        <h6>Predstojeće rezervacije</h6>
+                        <h2><?= $stats['PredstojećeRezervacije'] ?? 0 ?></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+         <div class="filter-section">
+            <form method="get" action="">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">Svi statusi</option>
+                            <option value="Aktivna" <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna') ? 'selected' : '' ?>>Aktivna</option>
+                            <option value="Zavrsena" <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena') ? 'selected' : '' ?>>Završena</option>
+                            <option value="Otkazana" <?= (isset($_GET['status']) && $_GET['status'] == 'Otkazana') ? 'selected' : '' ?>>Otkazana</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Datum od</label>
+                        <input type="date" class="form-control" name="date_from" value="<?= $_GET['date_from'] ?? '' ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Datum do</label>
+                        <input type="date" class="form-control" name="date_to" value="<?= $_GET['date_to'] ?? '' ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Sortiraj po</label>
+                        <select class="form-select" name="sort_by">
+                            <option value="">Zadano (datum ↓)</option>
+                            <option value="date_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_asc') ? 'selected' : '' ?>>Datum ↑</option>
+                            <option value="date_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_desc') ? 'selected' : '' ?>>Datum ↓</option>
+                            <option value="price_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc') ? 'selected' : '' ?>>Cijena ↑</option>
+                            <option value="price_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc') ? 'selected' : '' ?>>Cijena ↓</option>
+                            <option value="customer_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_asc') ? 'selected' : '' ?>>Korisnik A-Z</option>
+                            <option value="customer_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_desc') ? 'selected' : '' ?>>Korisnik Z-A</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;">
+                            <i class="fas fa-filter me-1"></i> Filtriraj
+                        </button>
+                        <a href="pregled_rezervacija.php" class="btn btn-secondary">
+                            <i class="fas fa-redo me-1" ></i> 
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+
+        <!-- Reservations Table -->
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Korisnik</th>
+                                <th>Vozilo</th>
+                                <th>Datum rezervacije</th>
+                                <th>Period</th>
+                                <th>Trajanje</th>
+                                <th>Cijena</th>
+                                <th>Status</th>
+                                <th>Akcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                     <?php
                   
                     $query = "SELECT 
@@ -176,7 +518,8 @@
                             $formattedStartDate = $startDate->format('d.m.Y');
                             $formattedEndDate = $endDate->format('d.m.Y');
                             
-                            echo "<tr class='hover-shadow'>
+                       // ... inside your while loop ...
+echo "<tr class='hover-shadow'>
     <td>{$row['IDRezervacija']}</td>
     <td>{$row['ImeKorisnika']} {$row['PrezimeKorisnika']}</td>
     <td>{$row['VoziloNaziv']} {$row['VoziloModel']}</td>
@@ -189,17 +532,20 @@
             " . ucfirst($row['StatusRezervacije']) . "
         </span>
     </td>
-   
-    <td>
-                                    <a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}'  class='btn btn-sm btn-outline-danger' title='Obriši' onclick='return confirm('Jeste li sigurni?')'
-                                    </a>
-                                    <i class='fas fa-trash-alt'> 
-                                    " . ($row['StatusRezervacije'] == 'Aktivna' ? 
-                                        "<a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}' class='btn btn-sm btn-danger'>Otkaži</a>" : 
-                                        "") . "
-                                        
-                                </td>
-</tr>"; 
+    <td>";
+        // Only show "Cancel" button if the reservation is actually active
+        if ($row['StatusRezervacije'] == 'Aktivna') {
+            echo "<a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}' 
+         class='btn btn-sm btn-outline-danger' 
+         title='Otkaži' 
+         onclick=\"return confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')\">
+         <i class='fas fa-trash-alt'></i>
+      </a>";
+        } else {
+            echo "<span class='text-muted'></span>";
+        }
+    echo "</td>
+</tr>";
                         }
                     } else {
                         echo "<tr><td colspan='9' class='text-center'>Nema pronađenih rezervacija</td></tr>";
@@ -212,8 +558,15 @@
         </div>
     </div>
 
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                new bootstrap.Alert(alert).close();
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
-

@@ -1,7 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Statistika </title>
+    <style>
+        /* ===== MODERN PASTEL PALETTE ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #F5F7F4;
+            --bg-secondary: #E8EDE7;
+            --text-primary: #3d4a3e;
+            --text-secondary: #6B7B6E;
+            --accent-green: #68896B;
+            --accent-sage: #8FA67E;
+            --accent-light: #C8D5B9;
+            --accent-taupe: #A0937D;
+            --white: #ffffff;
+            --accent-1: #88B49A;
+            --accent-2: #A0C5A8;
+            --accent-3: #B8A596;
+            --accent-4: #D4A574;
+            --accent-5: #C48B7C;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-sage) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 0 0 24px 24px;
+        }
+        .page-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            margin: 0;
+        }
+        .page-header p {
+            opacity: 0.9;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+
+        /* Statistics Cards */
+        .stats-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--accent-light);
+            transition: all 0.3s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .stats-card h6 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+        }
+        .stat-subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        .stats-icon {
+            font-size: 3rem;
+            opacity: 0.1;
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            color: var(--text-primary);
+        }
+        .stats-card-1 { border-left: 4px solid var(--accent-1); }
+        .stats-card-2 { border-left: 4px solid var(--accent-2); }
+        .stats-card-3 { border-left: 4px solid var(--accent-3); }
+        .stats-card-4 { border-left: 4px solid var(--accent-4); }
+        .stats-card-5 { border-left: 4px solid var(--accent-5); }
+
+        /* Chart Cards */
+        .chart-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 2rem;
+            border: 1px solid var(--accent-light);
+        }
+        .chart-card h5 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* Top Lists */
+        .top-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .top-list li {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--accent-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .top-list li:hover {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        .top-list li:last-child {
+            border-bottom: none;
+        }
+        .rank-badge {
+            background: var(--accent-sage);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .rank-badge.gold { 
+            background: linear-gradient(135deg, #D4A574 0%, #E8B77D 100%); 
+            color: white;
+        }
+        .rank-badge.silver { 
+            background: linear-gradient(135deg, #A0937D 0%, #B8A596 100%); 
+            color: white;
+        }
+        .rank-badge.bronze { 
+            background: linear-gradient(135deg, #8FA67E 0%, #A0C5A8 100%); 
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 2rem 0;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+         .navbar {
+            background-color: #F5F7F4 !important;
+            border-bottom: 1px solid #C8D5B9;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            padding: 1rem 2rem;
+        }
+        .navbar .navbar-brand, .navbar .nav-link {
+            color: #3d4a3e !important;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .navbar .nav-link:hover {
+            color: #68896B !important;
+        }
+    </style>
+</head>
+<body>
+<?php include("navigacija.php"); ?>
+
 <?php
 include("db__connection.php");
 
-// Get overall statistics - ISPRAVLJENI UPITI
+// Get overall statistics
 $statsQuery = "SELECT 
     (SELECT COUNT(*) FROM vozila) as TotalVehicles,
     (SELECT COUNT(*) FROM korisnici) as TotalUsers,
@@ -48,7 +250,7 @@ while ($row = mysqli_fetch_assoc($topVehiclesResult)) {
     $topVehicles[] = $row;
 }
 
-// Top customers - ISPRAVLJENO: samo korisnici s rezervacijama
+// Top customers
 $topCustomersQuery = "SELECT 
     k.IDKorisnici,
     k.ImeKorisnika, 
@@ -91,7 +293,7 @@ while ($row = mysqli_fetch_assoc($statusResult)) {
     $statusData[] = $row;
 }
 
-// Dodatni upit za rezervacije po vozilima za graf
+// Reservations by vehicle
 $reservationsByVehicleQuery = "SELECT 
     CONCAT(v.Naziv, ' ', v.Model) as NazivVozila,
     COUNT(r.IDRezervacija) as BrojRezervacija,
@@ -108,7 +310,7 @@ while ($row = mysqli_fetch_assoc($reservationsByVehicleResult)) {
     $reservationsByVehicle[] = $row;
 }
 
-// Ukupni prosječni prihod po rezervaciji
+// Average revenue
 $avgRevenueQuery = "SELECT 
     COALESCE(AVG(UkupnaCijena), 0) as AvgRevenue,
     COALESCE(AVG(DATEDIFF(DatumZavrsetka, DatumPocetka)), 0) as AvgDays
@@ -117,123 +319,13 @@ $avgRevenueResult = mysqli_query($db, $avgRevenueQuery);
 $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
 ?>
 
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Statistika - Rent-a-Car</title>
-    <style>
-       
-        .stats-card {
-            border-left: 4px solid;
-            transition: all 0.3s;
-            height: 100%;
-        }
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-        .stats-card-1 { border-left-color: #4361ee; }
-        .stats-card-2 { border-left-color: #3f37c9; }
-        .stats-card-3 { border-left-color: #4cc9f0; }
-        .stats-card-4 { border-left-color: #7209b7; }
-        .stats-card-5 { border-left-color: #f72585; }
-        
-        .stats-icon {
-            font-size: 3rem;
-            opacity: 0.2;
-            position: absolute;
-            right: 20px;
-            top: 20px;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin-bottom: 30px;
-        }
-        
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 0;
-            margin-bottom: 40px;
-            border-radius: 0 0 20px 20px;
-        }
-        
-        .top-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .top-list li {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-        
-        .top-list li:hover {
-            background: #f8f9fa;
-        }
-        
-        .top-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .rank-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-        }
-        
-        .rank-badge.gold { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #333; }
-        .rank-badge.silver { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); color: #333; }
-        .rank-badge.bronze { background: linear-gradient(135deg, #cd7f32 0%, #e8b77d 100%); color: #fff; }
-        
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-        
-        .stat-subtext {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-    </style>
-</head>
-<body class="bg-light">
-<?php include("navigacija.php"); ?>
-
 <div class="page-header">
     <div class="container">
-        <h1 class="mb-0">
+        <h1>
             <i class="fas fa-chart-line me-3"></i>
             Statistika i Izvještaji
         </h1>
-        <p class="mb-0 mt-2 opacity-75">Pregled poslovanja i analiza podataka</p>
+        <p>Pregled poslovanja i analiza podataka</p>
     </div>
 </div>
 
@@ -241,95 +333,79 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
     <!-- Overview Cards -->
     <div class="row mb-4">
         <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-1">
-                <div class="card-body position-relative">
-                    <i class="fas fa-car stats-icon"></i>
-                    <h6 class="text-muted mb-2">Ukupno vozila</h6>
-                    <div class="stat-value"><?= $stats['TotalVehicles'] ?? 0 ?></div>
-                </div>
+            <div class="stats-card stats-card-1">
+                <i class="fas fa-car stats-icon"></i>
+                <h6>Ukupno vozila</h6>
+                <div class="stat-value"><?= $stats['TotalVehicles'] ?? 0 ?></div>
             </div>
         </div>
         
         <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-2">
-                <div class="card-body position-relative">
-                    <i class="fas fa-users stats-icon"></i>
-                    <h6 class="text-muted mb-2">Ukupno korisnika</h6>
-                    <div class="stat-value"><?= $stats['TotalUsers'] ?? 0 ?></div>
-                </div>
+            <div class="stats-card stats-card-2">
+                <i class="fas fa-users stats-icon"></i>
+                <h6>Ukupno korisnika</h6>
+                <div class="stat-value"><?= $stats['TotalUsers'] ?? 0 ?></div>
             </div>
         </div>
         
         <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-3">
-                <div class="card-body position-relative">
-                    <i class="fas fa-calendar-check stats-icon"></i>
-                    <h6 class="text-muted mb-2">Ukupno rezervacija</h6>
-                    <div class="stat-value"><?= $stats['TotalReservations'] ?? 0 ?></div>
-                    
-                  
-                </div>
+            <div class="stats-card stats-card-3">
+                <i class="fas fa-calendar-check stats-icon"></i>
+                <h6>Ukupno rezervacija</h6>
+                <div class="stat-value"><?= $stats['TotalReservations'] ?? 0 ?></div>
             </div>
         </div>
         
         <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-4">
-                <div class="card-body position-relative">
-                    <i class="fas fa-euro-sign stats-icon"></i>
-                    <h6 class="text-muted mb-2">Ukupan prihod</h6>
-                    <div class="stat-value"><?= isset($stats['TotalRevenue']) ? number_format($stats['TotalRevenue'], 2).' €' : '0.00 €' ?></div>
-                </div>
+            <div class="stats-card stats-card-4">
+                <i class="fas fa-euro-sign stats-icon"></i>
+                <h6>Ukupan prihod</h6>
+                <div class="stat-value"><?= isset($stats['TotalRevenue']) ? number_format($stats['TotalRevenue'], 2).' €' : '0.00 €' ?></div>
             </div>
         </div>
     </div>
 
-    <!-- Dodatne statističke kartice -->
+    <!-- Additional Statistics -->
     <div class="row mb-4">
         <div class="col-md-4 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-5">
-                <div class="card-body position-relative">
-                    <i class="fas fa-chart-pie stats-icon"></i>
-                    <h6 class="text-muted mb-2">Prosječna vrijednost rezervacije</h6>
-                    <div class="stat-value"><?= number_format($avgRevenue['AvgRevenue'] ?? 0, 2) ?> €</div>
-                    <div class="stat-subtext">Prosjek trajanja rezervacija u danima: <?= number_format($avgRevenue['AvgDays'] ?? 0, 1) ?>  </div>
-                </div>
+            <div class="stats-card stats-card-5">
+                <i class="fas fa-chart-pie stats-icon"></i>
+                <h6>Prosječna vrijednost rezervacije</h6>
+                <div class="stat-value"><?= number_format($avgRevenue['AvgRevenue'] ?? 0, 2) ?> €</div>
+                <div class="stat-subtext">Prosjek trajanja: <?= number_format($avgRevenue['AvgDays'] ?? 0, 1) ?> dana</div>
             </div>
         </div>
         
         <div class="col-md-4 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-1">
-                <div class="card-body position-relative">
-                    <i class="fas fa-percentage stats-icon"></i>
-                    <h6 class="text-muted mb-2">Zauzetost vozila</h6>
-                    <?php
-                    $totalVehicles = $stats['TotalVehicles'] ?? 1;
-                    $reservedVehicles = 0;
-                    foreach ($statusData as $status) {
-                        if ($status['Status'] == 'Rezervirano') {
-                            $reservedVehicles = $status['Broj'];
-                        }
+            <div class="stats-card stats-card-1">
+                <i class="fas fa-percentage stats-icon"></i>
+                <h6>Zauzetost vozila</h6>
+                <?php
+                $totalVehicles = $stats['TotalVehicles'] ?? 1;
+                $reservedVehicles = 0;
+                foreach ($statusData as $status) {
+                    if ($status['Status'] == 'Rezervirano') {
+                        $reservedVehicles = $status['Broj'];
                     }
-                    $occupancyRate = ($totalVehicles > 0) ? ($reservedVehicles / $totalVehicles * 100) : 0;
-                    ?>
-                    <div class="stat-value"><?= number_format($occupancyRate, 1) ?>%</div>
-                    <div class="stat-subtext"><?= $reservedVehicles ?> od <?= $totalVehicles ?> vozila</div>
-                </div>
+                }
+                $occupancyRate = ($totalVehicles > 0) ? ($reservedVehicles / $totalVehicles * 100) : 0;
+                ?>
+                <div class="stat-value"><?= number_format($occupancyRate, 1) ?>%</div>
+                <div class="stat-subtext"><?= $reservedVehicles ?> od <?= $totalVehicles ?> vozila</div>
             </div>
         </div>
         
         <div class="col-md-4 col-sm-6 mb-3">
-            <div class="card stats-card stats-card-2">
-                <div class="card-body position-relative">
-                    <i class="fas fa-money-bill-wave stats-icon"></i>
-                    <h6 class="text-muted mb-2">Prosječni dnevni prihod</h6>
-                    <?php
-                    $totalRevenue = $stats['TotalRevenue'] ?? 0;
-                    $totalDays = $stats['TotalDays'] ?? 1;
-                    $avgDailyRevenue = ($totalDays > 0) ? ($totalRevenue / $totalDays) : 0;
-                    ?>
-                    <div class="stat-value"><?= number_format($avgDailyRevenue, 2) ?> €</div>
-                    <div class="stat-subtext">po danu iznajmljivanja</div>
-                </div>
+            <div class="stats-card stats-card-2">
+                <i class="fas fa-money-bill-wave stats-icon"></i>
+                <h6>Prosječni dnevni prihod</h6>
+                <?php
+                $totalRevenue = $stats['TotalRevenue'] ?? 0;
+                $totalDays = $stats['TotalDays'] ?? 1;
+                $avgDailyRevenue = ($totalDays > 0) ? ($totalRevenue / $totalDays) : 0;
+                ?>
+                <div class="stat-value"><?= number_format($avgDailyRevenue, 2) ?> €</div>
+                <div class="stat-subtext">po danu iznajmljivanja</div>
             </div>
         </div>
     </div>
@@ -339,8 +415,8 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
         <!-- Monthly Revenue Chart -->
         <div class="col-lg-8 mb-4">
             <div class="chart-card">
-                <h5 class="mb-4">
-                    <i class="fas fa-chart-bar me-2 text-primary"></i>
+                <h5>
+                    <i class="fas fa-chart-bar me-2" style="color: var(--accent-green);"></i>
                     Mjesečni prihod (Zadnjih 12 mjeseci)
                 </h5>
                 <div class="chart-container">
@@ -352,8 +428,8 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
         <!-- Vehicle Status Chart -->
         <div class="col-lg-4 mb-4">
             <div class="chart-card">
-                <h5 class="mb-4">
-                    <i class="fas fa-chart-pie me-2 text-success"></i>
+                <h5>
+                    <i class="fas fa-chart-pie me-2" style="color: var(--accent-sage);"></i>
                     Status vozila
                 </h5>
                 <div class="chart-container" style="height: 300px;">
@@ -368,8 +444,8 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
         <!-- Top Vehicles -->
         <div class="col-lg-6 mb-4">
             <div class="chart-card">
-                <h5 class="mb-4">
-                    <i class="fas fa-trophy me-2 text-warning"></i>
+                <h5>
+                    <i class="fas fa-trophy me-2" style="color: var(--accent-4);"></i>
                     Top 5 vozila po prihodu
                 </h5>
                 <ul class="top-list">
@@ -394,7 +470,7 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                                 </div>
                             </div>
                             <div class="text-end">
-                                <strong class="text-success"><?= number_format($vehicle['UkupnaProdaja'] ?? 0, 2, ',', '.') ?> €</strong>
+                                <strong style="color: var(--accent-green);"><?= number_format($vehicle['UkupnaProdaja'] ?? 0, 2, ',', '.') ?> €</strong>
                             </div>
                         </li>
                     <?php 
@@ -408,8 +484,8 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
         <!-- Top Customers -->
         <div class="col-lg-6 mb-4">
             <div class="chart-card">
-                <h5 class="mb-4">
-                    <i class="fas fa-star me-2 text-info"></i>
+                <h5>
+                    <i class="fas fa-star me-2" style="color: var(--accent-sage);"></i>
                     Top 5 korisnika
                 </h5>
                 <ul class="top-list">
@@ -431,7 +507,7 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                                 </div>
                             </div>
                             <div class="text-end">
-                                <strong class="text-success"><?= number_format($customer['UkupnoPlatio'] ?? 0, 2, ',', '.') ?> €</strong>
+                                <strong style="color: var(--accent-green);"><?= number_format($customer['UkupnoPlatio'] ?? 0, 2, ',', '.') ?> €</strong>
                             </div>
                         </li>
                     <?php 
@@ -447,8 +523,8 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
     <div class="row">
         <div class="col-12 mb-4">
             <div class="chart-card">
-                <h5 class="mb-4">
-                    <i class="fas fa-chart-line me-2 text-danger"></i>
+                <h5>
+                    <i class="fas fa-chart-line me-2" style="color: var(--accent-taupe);"></i>
                     Top 10 vozila po broju rezervacija
                 </h5>
                 <div class="chart-container">
@@ -465,7 +541,6 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     const monthlyData = <?= json_encode($monthlyData) ?>;
     
-    // Ako nema podataka, kreiraj prazan graf
     if (monthlyData.length === 0) {
         monthlyData.push({Mjesec: new Date().toISOString().slice(0,7), Prihod: 0, BrojRezervacija: 0});
     }
@@ -480,10 +555,10 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
             datasets: [{
                 label: 'Prihod (€)',
                 data: monthlyData.map(d => parseFloat(d.Prihod || 0)),
-                backgroundColor: 'rgba(67, 97, 238, 0.8)',
-                borderColor: 'rgba(67, 97, 238, 1)',
+                backgroundColor: 'rgba(104, 137, 107, 0.8)',
+                borderColor: 'rgba(104, 137, 107, 1)',
                 borderWidth: 2,
-                borderRadius: 8
+                borderRadius: 12
             }]
         },
         options: {
@@ -494,6 +569,9 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(61, 74, 62, 0.95)',
+                    padding: 12,
+                    borderRadius: 8,
                     callbacks: {
                         label: function(context) {
                             return 'Prihod: ' + context.parsed.y.toLocaleString('hr-HR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
@@ -508,6 +586,14 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                         callback: function(value) {
                             return value.toLocaleString('hr-HR', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ' €';
                         }
+                    },
+                    grid: {
+                        color: 'rgba(200, 213, 185, 0.3)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             }
@@ -525,12 +611,11 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
             datasets: [{
                 data: statusData.map(d => d.Broj),
                 backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    
-                    'rgba(220, 53, 69, 0.8)',
-             
+                    'rgba(136, 180, 154, 0.8)',
+                    'rgba(212, 165, 116, 0.8)',
+                    'rgba(196, 139, 124, 0.8)'
                 ],
-                borderWidth: 2,
+                borderWidth: 3,
                 borderColor: '#fff'
             }]
         },
@@ -539,7 +624,14 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 13,
+                            family: "'Inter', sans-serif"
+                        }
+                    }
                 }
             }
         }
@@ -556,10 +648,10 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
             datasets: [{
                 label: 'Broj rezervacija',
                 data: reservationsByVehicle.map(v => parseInt(v.BrojRezervacija)),
-                backgroundColor: 'rgba(76, 201, 240, 0.8)',
-                borderColor: 'rgba(76, 201, 240, 1)',
+                backgroundColor: 'rgba(143, 166, 126, 0.8)',
+                borderColor: 'rgba(143, 166, 126, 1)',
                 borderWidth: 2,
-                borderRadius: 8
+                borderRadius: 12
             }]
         },
         options: {
@@ -568,6 +660,11 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(61, 74, 62, 0.95)',
+                    padding: 12,
+                    borderRadius: 8
                 }
             },
             scales: {
@@ -575,6 +672,14 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(200, 213, 185, 0.3)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             }

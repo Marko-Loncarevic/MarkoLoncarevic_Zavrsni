@@ -5,43 +5,343 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="pregled_vozila.css">
     <title>Pregled vozila</title>
     <style>
-        .badge-available { background-color: #28a745; color: white; }
-        .badge-unavailable { background-color: #dc3545; color: white; }
-        .badge-reserved { background-color: #ffc107; color: black; }
-        .action-btns .btn { margin-right: 5px; }
-        .hover-shadow:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); transition: box-shadow 0.3s ease; }
-        .stat-card { border-left: 4px solid; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); }
-        .stat-card-1 { border-left-color: #28a745; }
-        .stat-card-2 { border-left-color: #17a2b8; }
-        .stat-card-3 { border-left-color: #6f42c1; }
-        .stat-card-4 { border-left-color: #fd7e14; }
-        
+        /* ===== MODERN PASTEL PALETTE ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #F5F7F4;
+            --bg-secondary: #E8EDE7;
+            --text-primary: #3d4a3e;
+            --text-secondary: #6B7B6E;
+            --accent-green: #68896B;
+            --accent-sage: #8FA67E;
+            --accent-light: #C8D5B9;
+            --accent-taupe: #A0937D;
+            --white: #ffffff;
+            --success: #88B49A;
+            --warning: #D4A574;
+            --danger: #C48B7C;
+        }
+
+        body {
+            background-color: var(--bg-secondary) !important;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            padding: 2rem;
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: var(--accent-light);
+            border: 1px solid var(--accent-sage);
+            color: var(--text-primary);
+            border-radius: 12px;
+        }
+        .alert-danger {
+            background-color: #f4ddd4;
+            border: 1px solid var(--danger);
+            color: var(--text-primary);
+            border-radius: 12px;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--accent-green);
+            border: none;
+            color: white;
+            font-weight: 500;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-sage);
+            transform: translateY(-2px);
+        }
+
+        /* Statistics Cards */
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--accent-light);
+            transition: all 0.3s;
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .stat-card h6 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .stat-card h4 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .stat-card h2 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+        }
+        .stat-card .badge {
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+        }
+        .stat-card-1 { border-left: 4px solid var(--success); }
+        .stat-card-2 { border-left: 4px solid var(--accent-sage); }
+        .stat-card-3 { border-left: 4px solid var(--accent-taupe); }
+        .stat-card-4 { border-left: 4px solid var(--warning); }
+
+        .badge-available {
+            background-color: var(--success);
+            color: white;
+        }
+        .badge-unavailable {
+            background-color: var(--danger);
+            color: white;
+        }
+        .badge-reserved {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        /* Table Card */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--accent-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .table {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .table thead {
+            background-color: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-light);
+        }
+        .table thead th {
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border: none;
+        }
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e8ede7;
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr {
+            transition: background 0.2s;
+        }
+        .table tbody tr:hover {
+            background-color: #fafbfa;
+        }
+
+        /* Photo Thumbnails */
         .vehicle-photo-thumbnail {
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            border: 2px solid #dee2e6;
+            border: 2px solid var(--accent-light);
+            transition: all 0.3s;
         }
         .vehicle-photo-thumbnail:hover {
-            border-color: #0d6efd;
+            border-color: var(--accent-sage);
             transform: scale(1.05);
         }
         .no-photo-placeholder {
             width: 60px;
             height: 60px;
-            background: #e9ecef;
-            border-radius: 8px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6c757d;
+            color: var(--text-secondary);
+            border: 2px solid var(--accent-light);
+            cursor: pointer;
         }
+
+        /* Action Buttons */
+        .action-btns .btn {
+            margin-right: 0.25rem;
+            border-radius: 8px;
+            padding: 0.4rem 0.7rem;
+        }
+        .btn-outline-primary {
+            color: var(--accent-green);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+        .btn-outline-secondary {
+            color: var(--text-secondary);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-sage);
+            border-color: var(--accent-sage);
+            color: white;
+        }
+        .btn-outline-danger {
+            color: var(--danger);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-danger:hover {
+            background-color: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+        .btn-outline-info {
+            color: var(--accent-sage);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-info:hover {
+            background-color: var(--accent-sage);
+            border-color: var(--accent-sage);
+            color: white;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--accent-light);
+            margin-bottom: 2rem;
+        }
+        .filter-section .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .filter-section .form-select,
+        .filter-section .form-control {
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-light);
+            border-radius: 12px;
+            padding: 0.6rem 1rem;
+            color: var(--text-primary);
+        }
+        .filter-section .form-select:focus,
+        .filter-section .form-control:focus {
+            border-color: var(--accent-sage);
+            box-shadow: 0 0 0 4px rgba(143, 166, 126, 0.1);
+        }
+        .filter-section .btn-secondary {
+            background-color: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+        }
+        .filter-section .btn-secondary:hover {
+            background-color: var(--accent-light);
+        }
+
+        /* Modal */
+        .modal-content {
+            background-color: var(--bg-primary);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--accent-light);
+            background: var(--white);
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem;
+        }
+        .modal-header .modal-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.5rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .modal-body label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .modal-body .form-control,
+        .modal-body .form-select {
+            background: var(--white);
+            border: 1px solid var(--accent-light);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+        }
+        .modal-body .form-control:focus,
+        .modal-body .form-select:focus {
+            border-color: var(--accent-sage);
+            box-shadow: 0 0 0 4px rgba(143, 166, 126, 0.1);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--accent-light);
+            padding: 1.5rem;
+            border-radius: 0 0 20px 20px;
+            background: var(--white);
+        }
+        .modal-footer .btn-secondary {
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+        }
+        .modal-footer .btn-secondary:hover {
+            background: var(--accent-light);
+        }
+
+        /* Photo Gallery */
         .photo-gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -50,8 +350,9 @@
         }
         .photo-gallery-item {
             position: relative;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
+            border: 2px solid var(--accent-light);
         }
         .photo-gallery-item img {
             width: 100%;
@@ -60,14 +361,14 @@
         }
         .photo-gallery-item .delete-photo {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(220, 53, 69, 0.9);
+            top: 8px;
+            right: 8px;
+            background: var(--danger);
             border: none;
             color: white;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -75,17 +376,18 @@
         }
         .photo-gallery-item .main-photo-badge {
             position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(40, 167, 69, 0.9);
+            top: 8px;
+            left: 8px;
+            background: var(--success);
             color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
             font-size: 11px;
+            font-weight: 600;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 <?php include("navigacija.php"); ?>
     <div class="container-fluid py-4">
         <?php if(isset($_GET['success'])): ?>
@@ -102,10 +404,10 @@
             </div>
         <?php endif; ?>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3 mb-0">Pregled vozila</h1>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
-                <i class="fas fa-plus"></i> Dodaj novo vozilo
+        <div class="page-header">
+            <h1>Pregled vozila</h1>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;" data-bs-target="#addVehicleModal">
+                <i class="fas fa-plus me-2"></i> Dodaj novo vozilo
             </button>
         </div>
 
@@ -153,17 +455,17 @@
             ?>
             
             <div class="col-md-3 mb-3">
-                <div class="card stat-card h-100 stat-card-1">
+                <div class="card stat-card stat-card-1">
                     <div class="card-body">
-                        <h6 class="card-title text-muted">Najiznajmljivanije vozilo</h6>
-                        <h4 class="card-text">
+                        <h6>Najiznajmljivanije vozilo</h6>
+                        <h4>
                             <?= $mostRented ? htmlspecialchars($mostRented['Naziv'].' '.$mostRented['Model']) : 'Nema podataka' ?>
                         </h4>
                         <div>
-                            <span class="badge bg-primary me-2">
+                             <span class="badge" style="background-color: var(--accent-green);">
                                 <?= $mostRented ? $mostRented['BrojRezervacija'].' rez.' : '0 rez.' ?>
                             </span>
-                            <span class="badge bg-info">
+                            <span class="badge" style="background-color: var(--accent-sage);">
                                 <?= $mostRented ? $mostRented['UkupnoDana'].' dana' : '0 dana' ?>
                             </span>
                         </div>
@@ -172,13 +474,13 @@
             </div>
             
             <div class="col-md-3 mb-3">
-                <div class="card stat-card h-100 stat-card-2">
+                <div class="card stat-card stat-card-2">
                     <div class="card-body">
-                        <h6 class="card-title text-muted">Najveća zarada od vozila</h6>
-                        <h4 class="card-text">
+                        <h6>Najveća zarada od vozila</h6>
+                        <h4>
                             <?= $highestEarning ? htmlspecialchars($highestEarning['Naziv'].' '.$highestEarning['Model']) : 'Nema podataka' ?>
                         </h4>
-                        <span class="badge bg-success">
+                        <span class="badge badge-available">
                             <?= $highestEarning ? number_format($highestEarning['UkupnaZarada'], 2).' €' : '0.00 €' ?>
                         </span>
                     </div>
@@ -186,22 +488,72 @@
             </div>
             
             <div class="col-md-3 mb-3">
-                <div class="card stat-card h-100 stat-card-3">
+                <div class="card stat-card stat-card-3">
                     <div class="card-body">
-                        <h6 class="card-title text-muted">Ukupno iznajmljivanja</h6>
-                        <h2 class="card-text"><?= $stats['UkupnoDana'] ?? 0 ?> dana</h2>
+                        <h6>Ukupno iznajmljivanja</h6>
+                        <h2><?= $stats['UkupnoDana'] ?? 0 ?> dana</h2>
                     </div>
                 </div>
             </div>
             
             <div class="col-md-3 mb-3">
-                <div class="card stat-card h-100 stat-card-4">
+                <div class="card stat-card stat-card-4">
                     <div class="card-body">
-                        <h6 class="card-title text-muted">Trenutno iznajmljeno</h6>
-                        <h2 class="card-text"><?= $rentedCount['TrenutnoIznajmljeno'] ?? 0 ?> vozila</h2>
+                        <h6>Trenutno iznajmljeno</h6>
+                        <h2><?= $rentedCount['TrenutnoIznajmljeno'] ?? 0 ?> vozila</h2>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <form method="get" action="">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                       <?php $current_status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_SPECIAL_CHARS); ?>
+
+<select class="form-select" name="status">
+    <option value="">Svi statusi</option>
+    
+    <option value="Dostupno" <?= $current_status === 'Dostupno' ? 'selected' : '' ?>>
+        Dostupno
+    </option>
+    
+    <option value="Nije dostupno" <?= $current_status === 'Nije dostupno' ? 'selected' : '' ?>>
+        Nije dostupno
+    </option>
+</select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Cijena od (€)</label>
+                        <input type="number" step="0.01" class="form-control" name="price_from" value="<?= $_GET['price_from'] ?? '' ?>" placeholder="0.00">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Cijena do (€)</label>
+                        <input type="number" step="0.01" class="form-control" name="price_to" value="<?= $_GET['price_to'] ?? '' ?>" placeholder="999.99">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Sortiraj po</label>
+                        <select class="form-select" name="sort_by">
+                            <option value="">Zadano</option>
+                            <option value="name_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_asc') ? 'selected' : '' ?>>Naziv A-Z</option>
+                            <option value="name_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_desc') ? 'selected' : '' ?>>Naziv Z-A</option>
+                            <option value="price_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc') ? 'selected' : '' ?>>Cijena ↑</option>
+                            <option value="price_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc') ? 'selected' : '' ?>>Cijena ↓</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;">
+                            <i class="fas fa-filter me-1"></i> Filtriraj
+                        </button>
+                        <a href="pregled_vozila.php" class="btn btn-secondary">
+                            <i class="fas fa-redo me-1"></i> 
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <!-- Add Vehicle Modal -->
@@ -333,10 +685,47 @@
                             FROM vozila v
                             LEFT JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
                             LEFT JOIN rezervacije r ON v.IDVozilo = r.VoziloID
-                            LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1
-                            GROUP BY v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, 
-                                     v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija, vs.PutanjaSlike
-                            ORDER BY v.Naziv, v.Model";
+                            LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1";
+                            
+                            // Add filter conditions
+                            $whereClauses = [];
+                            if (!empty($_GET['status'])) {
+                                $whereClauses[] = "v.Raspolozivost = '" . mysqli_real_escape_string($db, $_GET['status']) . "'";
+                            }
+                            if (!empty($_GET['price_from'])) {
+                                $whereClauses[] = "v.CijenaKoristenjaDnevno >= " . floatval($_GET['price_from']);
+                            }
+                            if (!empty($_GET['price_to'])) {
+                                $whereClauses[] = "v.CijenaKoristenjaDnevno <= " . floatval($_GET['price_to']);
+                            }
+                            
+                            if (!empty($whereClauses)) {
+                                $query .= " WHERE " . implode(" AND ", $whereClauses);
+                            }
+                            
+                            $query .= " GROUP BY v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, 
+                                     v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija, vs.PutanjaSlike";
+                            
+                            // Add sorting
+                            $orderBy = "v.Naziv, v.Model"; // Default sorting
+                            if (!empty($_GET['sort_by'])) {
+                                switch($_GET['sort_by']) {
+                                    case 'name_asc':
+                                        $orderBy = "v.Naziv ASC, v.Model ASC";
+                                        break;
+                                    case 'name_desc':
+                                        $orderBy = "v.Naziv DESC, v.Model DESC";
+                                        break;
+                                    case 'price_asc':
+                                        $orderBy = "v.CijenaKoristenjaDnevno ASC";
+                                        break;
+                                    case 'price_desc':
+                                        $orderBy = "v.CijenaKoristenjaDnevno DESC";
+                                        break;
+                                }
+                            }
+                            
+                            $query .= " ORDER BY " . $orderBy;
 
                             $result = mysqli_query($db, $query) or die("Greška u SQL upitu: " . mysqli_error($db));
                             
@@ -356,7 +745,7 @@
                                     $statusText = 'Nije dostupno';
                                 }
                             ?>
-                                <tr class="hover-shadow">
+                                <tr>
                                     <td>
                                         <?php if ($row['GlavnaSlika']): ?>
                                             <img src="<?= htmlspecialchars($row['GlavnaSlika']) ?>" 
@@ -373,7 +762,7 @@
                                     <td>
                                         <?= htmlspecialchars($row['Naziv']) ?>
                                         <?php if ($row['BrojRezervacija'] > 0): ?>
-                                            <span class="badge bg-primary ms-2" title="Broj rezervacija">
+                                            <span class="badge" style="background-color: var(--accent-green); color: white; margin-left: 0.5rem;">
                                                 <?= $row['BrojRezervacija'] ?>
                                             </span>
                                         <?php endif; ?>
@@ -384,7 +773,7 @@
                                     <td><?= isset($row['Kilometraza']) ? number_format($row['Kilometraza'], 0, ',', '.') . ' km' : 'N/A' ?></td>
                                     <td><?= htmlspecialchars($row['Registracija'] ?? 'N/A') ?></td>
                                     <td>
-                                        <span class="badge <?= $statusClass ?>" title="<?= $statusText ?>">
+                                        <span class="badge <?= $statusClass ?>">
                                             <?= $statusText ?>
                                         </span>
                                     </td>
@@ -444,7 +833,6 @@
         function openPhotoGallery(vehicleId) {
             document.getElementById('galleryVehicleId').value = vehicleId;
             
-            // Fetch photos for this vehicle
             fetch('get_vehicle_photos.php?id=' + vehicleId)
                 .then(response => response.json())
                 .then(data => {
