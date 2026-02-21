@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Validate inputs
     if (empty($imeKorisnika) || empty($prezimeKorisnika) || empty($emailKorisnika)) {
-        header("Location: pregled_vozila.php?error=Molimo popunite sve podatke korisnika");
+        header("Location: pregled_rezervacija.php?error=Molimo popunite sve podatke korisnika");
         exit();
     }
     
     if (empty($voziloID) || empty($odKada) || empty($doKada)) {
-        header("Location: pregled_vozila.php?error=Molimo popunite sve podatke rezervacije");
+        header("Location: pregled_rezervacija.php?error=Molimo popunite sve podatke rezervacije");
         exit();
     }
     
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $startDate = new DateTime($odKada);
     $endDate = new DateTime($doKada);
     if ($startDate >= $endDate) {
-        header("Location: pregled_vozila.php?error=Datum završetka mora biti nakon datuma početka");
+        header("Location: pregled_rezervacija.php?error=Datum završetka mora biti nakon datuma početka");
         exit();
     }
     
@@ -102,27 +102,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception("Greška prilikom kreiranja rezervacije");
         }
         
-        // Update vehicle status
-        $updateVehicleQuery = "UPDATE vozila SET Raspolozivost = 'Rezervirano' WHERE IDVozilo = ?";
-        $stmt = mysqli_prepare($db, $updateVehicleQuery);
-        mysqli_stmt_bind_param($stmt, "i", $voziloID);
-        mysqli_stmt_execute($stmt);
+        // Vehicle status is computed dynamically from reservations in pregled_vozila.php,
+        // so no need to update vozila.Raspolozivost here.
         
         // Commit transaction
         mysqli_commit($db);
         
-        header("Location: pregled_vozila.php?success=Rezervacija je uspješno kreirana!");
+        header("Location: pregled_rezervacija.php?success=Rezervacija je uspješno kreirana!");
         exit();
         
     } catch (Exception $e) {
         // Rollback transaction on error
         mysqli_rollback($db);
-        header("Location: pregled_vozila.php?error=" . urlencode($e->getMessage()));
+        header("Location: pregled_rezervacija.php?error=" . urlencode($e->getMessage()));
         exit();
     }
     
 } else {
-    header("Location: preleg_vozila.php");
+    header("Location: pregled_rezervacija.php");
     exit();
 }
 ?>

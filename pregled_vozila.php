@@ -33,6 +33,23 @@
             min-height: 100vh;
         }
 
+        /* Navigation - clean and minimal */
+        .navbar {
+            background-color: #F5F7F4 !important;
+            border-bottom: 1px solid #C8D5B9;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            padding: 1rem 2rem;
+        }
+        .navbar .navbar-brand, .navbar .nav-link {
+            color: #3d4a3e !important;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .navbar .nav-link:hover {
+            color: #68896B !important;
+        }
+
         .container-fluid {
             max-width: 1400px;
             padding: 2rem;
@@ -406,7 +423,7 @@
 
         <div class="page-header">
             <h1>Pregled vozila</h1>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;" data-bs-target="#addVehicleModal">
+           <button type="button" class="btn btn-primary" data-bs-toggle="modal" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;" data-bs-target="#addVehicleModal">
                 <i class="fas fa-plus me-2"></i> Dodaj novo vozilo
             </button>
         </div>
@@ -462,7 +479,7 @@
                             <?= $mostRented ? htmlspecialchars($mostRented['Naziv'].' '.$mostRented['Model']) : 'Nema podataka' ?>
                         </h4>
                         <div>
-                             <span class="badge" style="background-color: var(--accent-green);">
+                            <span class="badge " style="background-color: var(--accent-green);">
                                 <?= $mostRented ? $mostRented['BrojRezervacija'].' rez.' : '0 rez.' ?>
                             </span>
                             <span class="badge" style="background-color: var(--accent-sage);">
@@ -512,19 +529,27 @@
                 <div class="row g-3">
                     <div class="col-md-2">
                         <label class="form-label">Status</label>
-                       <?php $current_status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_SPECIAL_CHARS); ?>
-
-<select class="form-select" name="status">
-    <option value="">Svi statusi</option>
-    
-    <option value="Dostupno" <?= $current_status === 'Dostupno' ? 'selected' : '' ?>>
-        Dostupno
-    </option>
-    
-    <option value="Nije dostupno" <?= $current_status === 'Nije dostupno' ? 'selected' : '' ?>>
-        Nije dostupno
-    </option>
-</select>
+                        <select class="form-select" name="status">
+                            <option value="">Svi statusi</option>
+                            <option value="Dostupno" <?= (isset($_GET['status']) && $_GET['status'] == 'Dostupno') ? 'selected' : '' ?>>Dostupno</option>
+                            <option value="Rezervirano" <?= (isset($_GET['status']) && $_GET['status'] == 'Rezervirano') ? 'selected' : '' ?>>Rezervirano</option>
+                            <option value="Nije dostupno" <?= (isset($_GET['status']) && $_GET['status'] == 'Nije dostupno') ? 'selected' : '' ?>>Nije dostupno</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tip vozila</label>
+                        <select class="form-select" name="tip_vozila">
+                            <option value="">Svi tipovi</option>
+                            <option value="Gradski" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Gradski') ? 'selected' : '' ?>>Gradski</option>
+                            <option value="Kompakt" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Kompakt') ? 'selected' : '' ?>>Kompakt</option>
+                            <option value="Limuzina" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Limuzina') ? 'selected' : '' ?>>Limuzina</option>
+                            <option value="SUV" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'SUV') ? 'selected' : '' ?>>SUV</option>
+                            <option value="Karavan" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Karavan') ? 'selected' : '' ?>>Karavan</option>
+                            <option value="Kabriolet" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Kabriolet') ? 'selected' : '' ?>>Kabriolet</option>
+                            <option value="Kombi" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Kombi') ? 'selected' : '' ?>>Kombi</option>
+                            <option value="Sportski" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Sportski') ? 'selected' : '' ?>>Sportski</option>
+                            <option value="Terenac" <?= (isset($_GET['tip_vozila']) && $_GET['tip_vozila'] == 'Terenac') ? 'selected' : '' ?>>Terenac</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Cijena od (€)</label>
@@ -544,7 +569,7 @@
                             <option value="price_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc') ? 'selected' : '' ?>>Cijena ↓</option>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;">
                             <i class="fas fa-filter me-1"></i> Filtriraj
                         </button>
@@ -573,6 +598,20 @@
                             <div class="mb-3">
                                 <label for="modelVozila" class="form-label">Model vozila</label>
                                 <input type="text" class="form-control" id="modelVozila" name="modelVozila" maxlength="25">
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipVozila" class="form-label">Tip vozila</label>
+                                <select class="form-select" id="tipVozila" name="tipVozila">
+                                    <option value="Gradski">Gradski</option>
+                                    <option value="Kompakt">Kompakt</option>
+                                    <option value="Limuzina" selected>Limuzina</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Karavan">Karavan</option>
+                                    <option value="Kabriolet">Kabriolet</option>
+                                    <option value="Kombi">Kombi</option>
+                                    <option value="Sportski">Sportski</option>
+                                    <option value="Terenac">Terenac</option>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="cijenaVozila" class="form-label">Cijena korištenja dnevno</label>
@@ -648,6 +687,7 @@
                                 <th>ID</th>
                                 <th>Naziv</th>
                                 <th>Model</th>
+                                <th>Tip</th>
                                 <th>Cijena/dan</th>
                                 <th>Godište</th>
                                 <th>Kilometraža</th>
@@ -658,30 +698,29 @@
                         </thead>
                         <tbody>
                             <?php
+                            // Reset all vehicles to available first
                             $resetStatusQuery = "UPDATE vozila SET Raspolozivost = 'Dostupno'";
                             mysqli_query($db, $resetStatusQuery);
 
+                            // Mark vehicles as unavailable if they have an active reservation covering today
                             $unavailableQuery = "UPDATE vozila v
                                                  JOIN rezervacije r ON v.IDVozilo = r.VoziloID 
                                                  SET v.Raspolozivost = 'Nije dostupno'
-                                                 WHERE r.StatusRezervacije = 'aktivna'
-                                                   AND CURDATE() BETWEEN r.DatumPocetka AND r.DatumZavrsetka";
+                                                 WHERE LOWER(r.StatusRezervacije) = 'aktivna'
+                                                   AND CURDATE() BETWEEN DATE(r.DatumPocetka) AND DATE(r.DatumZavrsetka)";
                             mysqli_query($db, $unavailableQuery);
 
-                            $reservedQuery = "UPDATE vozila v
-                                              JOIN rezervacije r ON v.IDVozilo = r.VoziloID
-                                              SET v.Raspolozivost = 'Rezervirano'
-                                              WHERE r.StatusRezervacije = 'aktivna'
-                                                AND CURDATE() < r.DatumPocetka";
-                            mysqli_query($db, $reservedQuery);
-
                             $query = "SELECT 
-                                v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, v.Raspolozivost,
+                                v.IDVozilo, v.Naziv, v.Model, v.TipVozila, v.CijenaKoristenjaDnevno, v.Raspolozivost,
                                 ka.Godiste, ka.Kilometraza, ka.Registracija,
                                 COUNT(r.IDRezervacija) AS BrojRezervacija,
                                 SUM(DATEDIFF(r.DatumZavrsetka, r.DatumPocetka)) AS UkupnoDana,
                                 SUM(r.UkupnaCijena) AS UkupnaZarada,
-                                vs.PutanjaSlike AS GlavnaSlika
+                                vs.PutanjaSlike AS GlavnaSlika,
+                                (SELECT COUNT(*) FROM rezervacije rf 
+                                 WHERE rf.VoziloID = v.IDVozilo 
+                                   AND LOWER(rf.StatusRezervacije) = 'aktivna' 
+                                   AND DATE(rf.DatumPocetka) > CURDATE()) AS ImaFutureRezervaciju
                             FROM vozila v
                             LEFT JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
                             LEFT JOIN rezervacije r ON v.IDVozilo = r.VoziloID
@@ -689,8 +728,17 @@
                             
                             // Add filter conditions
                             $whereClauses = [];
-                            if (!empty($_GET['status'])) {
-                                $whereClauses[] = "v.Raspolozivost = '" . mysqli_real_escape_string($db, $_GET['status']) . "'";
+                            $selectedStatus = $_GET['status'] ?? '';
+                            if ($selectedStatus === 'Dostupno') {
+                                $whereClauses[] = "v.Raspolozivost = 'Dostupno'";
+                            } elseif ($selectedStatus === 'Rezervirano') {
+                                $whereClauses[] = "v.Raspolozivost = 'Dostupno'";
+                                // Will add HAVING clause after GROUP BY
+                            } elseif ($selectedStatus === 'Nije dostupno') {
+                                $whereClauses[] = "v.Raspolozivost = 'Nije dostupno'";
+                            }
+                            if (!empty($_GET['tip_vozila'])) {
+                                $whereClauses[] = "v.TipVozila = '" . mysqli_real_escape_string($db, $_GET['tip_vozila']) . "'";
                             }
                             if (!empty($_GET['price_from'])) {
                                 $whereClauses[] = "v.CijenaKoristenjaDnevno >= " . floatval($_GET['price_from']);
@@ -703,8 +751,13 @@
                                 $query .= " WHERE " . implode(" AND ", $whereClauses);
                             }
                             
-                            $query .= " GROUP BY v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, 
+                            $query .= " GROUP BY v.IDVozilo, v.Naziv, v.Model, v.TipVozila, v.CijenaKoristenjaDnevno, 
                                      v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija, vs.PutanjaSlike";
+
+                            // For 'Rezervirano' filter: vehicles that are available now but have a future active reservation
+                            if ($selectedStatus === 'Rezervirano') {
+                                $query .= " HAVING ImaFutureRezervaciju > 0";
+                            }
                             
                             // Add sorting
                             $orderBy = "v.Naziv, v.Model"; // Default sorting
@@ -734,12 +787,12 @@
                                 $statusClass = '';
                                 $statusText = '';
                                 
-                                if ($status == 'Dostupno') {
-                                    $statusClass = 'badge-available';
-                                    $statusText = 'Dostupno';
-                                } elseif ($status == 'Rezervirano') {
+                                if ($status == 'Dostupno' && $row['ImaFutureRezervaciju'] > 0) {
                                     $statusClass = 'badge-reserved';
                                     $statusText = 'Rezervirano';
+                                } elseif ($status == 'Dostupno') {
+                                    $statusClass = 'badge-available';
+                                    $statusText = 'Dostupno';
                                 } else {
                                     $statusClass = 'badge-unavailable';
                                     $statusText = 'Nije dostupno';
@@ -768,6 +821,7 @@
                                         <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($row['Model'] ?? 'N/A') ?></td>
+                                    <td><?= htmlspecialchars($row['TipVozila'] ?? 'Limuzina') ?></td>
                                     <td><?= number_format($row['CijenaKoristenjaDnevno'], 2) ?> €</td>
                                     <td><?= htmlspecialchars($row['Godiste'] ?? 'N/A') ?></td>
                                     <td><?= isset($row['Kilometraza']) ? number_format($row['Kilometraza'], 0, ',', '.') . ' km' : 'N/A' ?></td>

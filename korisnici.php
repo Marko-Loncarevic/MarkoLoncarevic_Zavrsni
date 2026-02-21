@@ -461,8 +461,8 @@
                         <input type="number" step="0.01" class="form-control" name="min_paid" value="<?= $_GET['min_paid'] ?? '' ?>" placeholder="0.00">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Sortiraj po</label>
-                        <select class="form-select" name="sort_by">
+                <label class="form-label">Sortiraj po</label>
+                <select class="form-select" name="sort_by">
                             <option value="">Zadano (A-Z)</option>
                             <option value="name_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_asc') ? 'selected' : '' ?>>Ime A-Z</option>
                             <option value="name_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'name_desc') ? 'selected' : '' ?>>Ime Z-A</option>

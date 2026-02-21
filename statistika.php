@@ -273,7 +273,8 @@ while ($row = mysqli_fetch_assoc($topCustomersResult)) {
 $statusQuery = "SELECT 
     CASE 
         WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
-        WHEN Raspolozivost = 'Rezervirano' THEN 'Rezervirano'
+       
+       
         WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
         ELSE 'Rezervirano'
     END as Status,
@@ -282,7 +283,8 @@ FROM vozila
 GROUP BY 
     CASE 
         WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
-        WHEN Raspolozivost = 'Rezervirano' THEN 'Rezervirano'
+       
+       
         WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
         ELSE 'Ostalo'
     END";

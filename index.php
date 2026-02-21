@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <title>Rent a car</title>
+    <title>Pregled vozila · AutoRent</title>
     <style>
         /* ===== MODERN PASTEL PALETTE ===== 
            #E8EDE7  (soft cream/beige background)
@@ -32,7 +32,22 @@
             line-height: 1.6;
         }
 
-        
+        /* Navigation - clean and minimal */
+        .navbar {
+            background-color: #F5F7F4 !important;
+            border-bottom: 1px solid #C8D5B9;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            padding: 1rem 2rem;
+        }
+        .navbar .navbar-brand, .navbar .nav-link {
+            color: #3d4a3e !important;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .navbar .nav-link:hover {
+            color: #68896B !important;
+        }
 
         /* Alerts with soft colors */
         .alert-success {
@@ -343,20 +358,12 @@
                 padding: 2rem 1.5rem;
             }
         }
-        
     </style>
 </head>
 <body>
 
 <!-- navigacija (vaš include) -->
 <?php include("navigacija.php"); ?>
-    <div class="container-fluid py-4">
-        <?php if(isset($_GET['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <?= htmlspecialchars($_GET['success']) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
 
 <?php
 if (isset($_GET['success'])) {
@@ -382,7 +389,7 @@ if (isset($_GET['error'])) {
         include("db__connection.php");
 
         $query = "SELECT 
-            v.IDVozilo, v.Naziv, v.Model, v.CijenaKoristenjaDnevno, v.Raspolozivost,
+            v.IDVozilo, v.Naziv, v.Model, v.TipVozila, v.CijenaKoristenjaDnevno, v.Raspolozivost,
             ka.Godiste, ka.Kilometraza, ka.Registracija,
             vs.PutanjaSlike,
             CASE WHEN EXISTS (
@@ -433,7 +440,7 @@ if (isset($_GET['error'])) {
                     <li><strong>Godište</strong> <span>' . htmlspecialchars($row["Godiste"]) . '</span></li>
                     <li><strong>Kilometraža</strong> <span>' . number_format($row["Kilometraza"], 0, ',', '.') . ' km</span></li>
                     <li><strong>Registracija</strong> <span>' . htmlspecialchars($row["Registracija"]) . '</span></li>
-                    <li><strong>Tip</strong> <span>Limuzina</span></li>
+                    <li><strong>Tip</strong> <span>' . htmlspecialchars($row["TipVozila"] ?? 'Limuzina') . '</span></li>
                 </ul>';
 
             echo '<div class="price-tag">

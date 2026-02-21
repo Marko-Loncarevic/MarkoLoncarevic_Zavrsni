@@ -155,7 +155,7 @@
             border-color: var(--accent-sage);
             box-shadow: 0 0 0 4px rgba(143, 166, 126, 0.1);
         }
- .filter-section .btn-secondary {
+        .filter-section .btn-secondary {
             background-color: var(--bg-secondary);
             border: none;
             color: var(--text-primary);
@@ -252,15 +252,6 @@
             border-color: var(--text-secondary);
             color: white;
         }
-        .btn-outline-danger {
-            color: #C48B7C;
-            border-color: var(--accent-light);
-        }
-        .btn-outline-danger:hover {
-            background-color: #C48B7C;
-            border-color: #C48B7C;
-            color: white;
-        }
 
         .badge-duration {
             background-color: var(--accent-sage);
@@ -306,8 +297,11 @@
                        WHERE r.StatusRezervacije = 'Aktivna' 
                        AND r.DatumZavrsetka < ?";
         $stmt = mysqli_prepare($db, $updateQuery);
-        mysqli_stmt_bind_param($stmt, "s", $currentDate);
-        mysqli_stmt_execute($stmt);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "s", $currentDate);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
         
         $updateQuery2 = "UPDATE rezervacije r
                         JOIN vozila v ON r.VoziloID = v.IDVozilo
@@ -316,10 +310,13 @@
                         WHERE r.StatusRezervacije = 'Zavrsena' 
                         AND r.DatumZavrsetka >= ?";
         $stmt2 = mysqli_prepare($db, $updateQuery2);
-        mysqli_stmt_bind_param($stmt2, "s", $currentDate);
-        mysqli_stmt_execute($stmt2);
+        if ($stmt2) {
+            mysqli_stmt_bind_param($stmt2, "s", $currentDate);
+            mysqli_stmt_execute($stmt2);
+            mysqli_stmt_close($stmt2);
+        }
 
-        // Get statistics
+        // Get statistics - FIXED: Removed special character from column alias
         $statsQuery = "SELECT 
             COUNT(CASE WHEN StatusRezervacije = 'Aktivna' THEN 1 END) as AktivneRezervacije,
             COALESCE(SUM(CASE WHEN StatusRezervacije = 'Aktivna' THEN UkupnaCijena END), 0) as AktivnaVrijednost,
@@ -327,10 +324,23 @@
             COALESCE(SUM(CASE WHEN StatusRezervacije = 'Zavrsena' THEN UkupnaCijena END), 0) as ZavrsenaProdaja,
             COALESCE(SUM(UkupnaCijena), 0) as UkupniPrihod,
             COALESCE(AVG(UkupnaCijena), 0) as ProsjecnaCijena,
-            COUNT(CASE WHEN StatusRezervacije = 'Aktivna' AND DatumPocetka > NOW() THEN 1 END) as PredstojećeRezervacije
+            COUNT(CASE WHEN StatusRezervacije = 'Aktivna' AND DatumPocetka > NOW() THEN 1 END) as PredstojeceRezervacije
         FROM rezervacije";
         $statsResult = mysqli_query($db, $statsQuery);
-        $stats = mysqli_fetch_assoc($statsResult);
+        
+        if ($statsResult) {
+            $stats = mysqli_fetch_assoc($statsResult);
+        } else {
+            $stats = [
+                'AktivneRezervacije' => 0,
+                'AktivnaVrijednost' => 0,
+                'ZavrseneRezervacije' => 0,
+                'ZavrsenaProdaja' => 0,
+                'UkupniPrihod' => 0,
+                'ProsjecnaCijena' => 0,
+                'PredstojeceRezervacije' => 0
+            ];
+        }
         ?>
 
         <!-- Statistics Cards -->
@@ -373,7 +383,7 @@
                 <div class="card stat-card stat-card-4">
                     <div class="card-body">
                         <h6>Predstojeće rezervacije</h6>
-                        <h2><?= $stats['PredstojećeRezervacije'] ?? 0 ?></h2>
+                        <h2><?= $stats['PredstojeceRezervacije'] ?? 0 ?></h2>
                     </div>
                 </div>
             </div>
@@ -381,48 +391,49 @@
 
       
          <div class="filter-section">
-            <form method="get" action="">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="">Svi statusi</option>
-                            <option value="Aktivna" <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna') ? 'selected' : '' ?>>Aktivna</option>
-                            <option value="Zavrsena" <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena') ? 'selected' : '' ?>>Završena</option>
-                            <option value="Otkazana" <?= (isset($_GET['status']) && $_GET['status'] == 'Otkazana') ? 'selected' : '' ?>>Otkazana</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Datum od</label>
-                        <input type="date" class="form-control" name="date_from" value="<?= $_GET['date_from'] ?? '' ?>">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Datum do</label>
-                        <input type="date" class="form-control" name="date_to" value="<?= $_GET['date_to'] ?? '' ?>">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Sortiraj po</label>
-                        <select class="form-select" name="sort_by">
-                            <option value="">Zadano (datum ↓)</option>
-                            <option value="date_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_asc') ? 'selected' : '' ?>>Datum ↑</option>
-                            <option value="date_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_desc') ? 'selected' : '' ?>>Datum ↓</option>
-                            <option value="price_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc') ? 'selected' : '' ?>>Cijena ↑</option>
-                            <option value="price_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc') ? 'selected' : '' ?>>Cijena ↓</option>
-                            <option value="customer_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_asc') ? 'selected' : '' ?>>Korisnik A-Z</option>
-                            <option value="customer_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_desc') ? 'selected' : '' ?>>Korisnik Z-A</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2" style="background-color: #3d4a3e; border-color: #3d4a3e;color: white;">
-                            <i class="fas fa-filter me-1"></i> Filtriraj
-                        </button>
-                        <a href="pregled_rezervacija.php" class="btn btn-secondary">
-                            <i class="fas fa-redo me-1" ></i> 
-                        </a>
-                    </div>
-                </div>
-            </form>
+    <form method="get" action="">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="">Svi statusi</option>
+                    <option value="Aktivna" <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna') ? 'selected' : '' ?>>Aktivna</option>
+                    <option value="Zavrsena" <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena') ? 'selected' : '' ?>>Završena</option>
+                  y
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Datum od</label>
+                <input type="date" class="form-control" name="date_from" value="<?= isset($_GET['date_from']) ? htmlspecialchars($_GET['date_from']) : '' ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Datum do</label>
+                <input type="date" class="form-control" name="date_to" value="<?= isset($_GET['date_to']) ? htmlspecialchars($_GET['date_to']) : '' ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sortiraj po</label>
+                <select class="form-select" name="sort_by">
+                    <option value="">Zadano (datum ↓)</option>
+                    <option value="date_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_asc') ? 'selected' : '' ?>>Datum ↑</option>
+                    <option value="date_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'date_desc') ? 'selected' : '' ?>>Datum ↓</option>
+                    <option value="price_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_asc') ? 'selected' : '' ?>>Cijena ↑</option>
+                    <option value="price_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'price_desc') ? 'selected' : '' ?>>Cijena ↓</option>
+                    <option value="customer_asc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_asc') ? 'selected' : '' ?>>Korisnik A-Z</option>
+                    <option value="customer_desc" <?= (isset($_GET['sort_by']) && $_GET['sort_by'] == 'customer_desc') ? 'selected' : '' ?>>Korisnik Z-A</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2" style="background-color: #3d4a3e; border-color: #3d4a3e; color: white;">
+                    <i class="fas fa-filter me-1"></i> Filtriraj
+                </button>
+                <a href="pregled_rezervacija.php" class="btn btn-secondary">
+                    <i class="fas fa-redo me-1"></i> 
+                </a>
+            </div>
         </div>
+    </form>
+</div>
 
 
         <!-- Reservations Table -->
@@ -445,7 +456,12 @@
                         </thead>
                         <tbody>
                     <?php
-                  
+                    // Provjeri da li je konekcija otvorena
+                    if (!isset($db) || !$db) {
+                        include("db__connection.php");
+                    }
+                    
+                    // Build query with filters
                     $query = "SELECT 
                         r.IDRezervacija,
                         k.ImeKorisnika,
@@ -462,7 +478,6 @@
                     JOIN korisnici k ON r.KorisnikID = k.IDKorisnici
                     JOIN vozila v ON r.VoziloID = v.IDVozilo";
                     
-                   
                     $conditions = [];
                     $params = [];
                     $types = '';
@@ -485,73 +500,100 @@
                         $types .= 's';
                     }
                     
-                    if (empty($conditions)) {
-                        $conditions[] = "1=1";
-                    }
-                    
                     if (!empty($conditions)) {
                         $query .= " WHERE " . implode(" AND ", $conditions);
                     }
                     
-                    $query .= " ORDER BY r.DatumPocetka DESC";
+                    // Add sorting
+                    $sort_by = $_GET['sort_by'] ?? '';
+                    switch ($sort_by) {
+                        case 'date_asc':
+                            $query .= " ORDER BY r.DatumPocetka ASC";
+                            break;
+                        case 'date_desc':
+                            $query .= " ORDER BY r.DatumPocetka DESC";
+                            break;
+                        case 'price_asc':
+                            $query .= " ORDER BY r.UkupnaCijena ASC";
+                            break;
+                        case 'price_desc':
+                            $query .= " ORDER BY r.UkupnaCijena DESC";
+                            break;
+                        case 'customer_asc':
+                            $query .= " ORDER BY k.ImeKorisnika ASC, k.PrezimeKorisnika ASC";
+                            break;
+                        case 'customer_desc':
+                            $query .= " ORDER BY k.ImeKorisnika DESC, k.PrezimeKorisnika DESC";
+                            break;
+                        default:
+                            $query .= " ORDER BY r.DatumPocetka DESC";
+                    }
                     
-                 
                     $stmt = mysqli_prepare($db, $query);
                     
-                    if (!empty($params)) {
-                        mysqli_stmt_bind_param($stmt, $types, ...$params);
-                    }
-                    
-                    mysqli_stmt_execute($stmt);
-                    $result = mysqli_stmt_get_result($stmt);
-                    
-                    if (mysqli_num_rows($result) > 0) {
-                        while ($row = mysqli_fetch_assoc($result)) {
-                            $startDate = new DateTime($row['DatumPocetka']);
-                            $endDate = new DateTime($row['DatumZavrsetka']);
-                            $duration = $startDate->diff($endDate)->days;
-                            
-                            $currentDate = new DateTime();
-                            $isActive = ($currentDate >= $startDate && $currentDate <= $endDate && $row['StatusRezervacije'] != 'Otkazana');
-                            $isCompleted = ($currentDate > $endDate && $row['StatusRezervacije'] != 'Otkazana');
-                            
-                            $formattedStartDate = $startDate->format('d.m.Y');
-                            $formattedEndDate = $endDate->format('d.m.Y');
-                            
-                       // ... inside your while loop ...
-echo "<tr class='hover-shadow'>
-    <td>{$row['IDRezervacija']}</td>
-    <td>{$row['ImeKorisnika']} {$row['PrezimeKorisnika']}</td>
-    <td>{$row['VoziloNaziv']} {$row['VoziloModel']}</td>
-    <td>" . date('d.m.Y', strtotime($row['DatumRezervacije'])) . "</td>
-    <td>{$formattedStartDate} - {$formattedEndDate}</td>
-    <td>{$duration} dana</td>
-    <td>" . number_format($row['UkupnaCijena'], 2) . " €</td>
-    <td>
-        <span class='status-badge status-" . strtolower($row['StatusRezervacije']) . "'>
-            " . ucfirst($row['StatusRezervacije']) . "
-        </span>
-    </td>
-    <td>";
-        // Only show "Cancel" button if the reservation is actually active
-        if ($row['StatusRezervacije'] == 'Aktivna') {
-            echo "<a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}' 
-         class='btn btn-sm btn-outline-danger' 
-         title='Otkaži' 
-         onclick=\"return confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')\">
-         <i class='fas fa-trash-alt'></i>
-      </a>";
-        } else {
-            echo "<span class='text-muted'></span>";
-        }
-    echo "</td>
-</tr>";
+                    if ($stmt) {
+                        if (!empty($params)) {
+                            mysqli_stmt_bind_param($stmt, $types, ...$params);
                         }
+                        
+                        if (mysqli_stmt_execute($stmt)) {
+                            $result = mysqli_stmt_get_result($stmt);
+                            
+                            if (mysqli_num_rows($result) > 0) {
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    $startDate = new DateTime($row['DatumPocetka']);
+                                    $endDate = new DateTime($row['DatumZavrsetka']);
+                                    $duration = $startDate->diff($endDate)->days;
+                                    
+                                    $formattedStartDate = $startDate->format('d.m.Y');
+                                    $formattedEndDate = $endDate->format('d.m.Y');
+                                    
+                                    // Determine status class
+                                    $statusClass = strtolower($row['StatusRezervacije']);
+                                    
+                                    echo "<tr>
+                                        <td>{$row['IDRezervacija']}</td>
+                                        <td>{$row['ImeKorisnika']} {$row['PrezimeKorisnika']}</td>
+                                        <td>{$row['VoziloNaziv']} {$row['VoziloModel']}</td>
+                                        <td>" . date('d.m.Y', strtotime($row['DatumRezervacije'])) . "</td>
+                                        <td>{$formattedStartDate} - {$formattedEndDate}</td>
+                                        <td>{$duration} dana</td>
+                                        <td>" . number_format($row['UkupnaCijena'], 2) . " €</td>
+                                        <td>
+                                            <span class='status-badge status-{$statusClass}'>
+                                                " . ucfirst($row['StatusRezervacije']) . "
+                                            </span>
+                                        </td>
+                                        <td>";
+                                    
+                                    // Only show "Cancel" button if the reservation is active
+                                    if ($row['StatusRezervacije'] == 'Aktivna') {
+                                        echo "<a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}' 
+                                            class='btn btn-sm btn-outline-danger' 
+                                            title='Otkaži' 
+                                            onclick=\"return confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')\">
+                                            <i class='fas fa-trash-alt'></i>
+                                        </a>";
+                                    } else {
+                                        echo "<span class='text-muted'>-</span>";
+                                    }
+                                    echo "</td></tr>";
+                                }
+                            } else {
+                                echo "<tr><td colspan='9' class='text-center py-4'>Nema pronađenih rezervacija</td></tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='9' class='text-center text-danger'>Greška pri izvršavanju upita</td></tr>";
+                        }
+                        mysqli_stmt_close($stmt);
                     } else {
-                        echo "<tr><td colspan='9' class='text-center'>Nema pronađenih rezervacija</td></tr>";
+                        echo "<tr><td colspan='9' class='text-center text-danger'>Greška u pripremi upita</td></tr>";
                     }
                     
-                    mysqli_close($db);
+                    // Zatvori konekciju na kraju
+                    if (isset($db) && $db) {
+                        mysqli_close($db);
+                    }
                     ?>
                 </tbody>
             </table>
