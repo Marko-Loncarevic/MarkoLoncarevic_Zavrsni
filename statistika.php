@@ -270,24 +270,10 @@ while ($row = mysqli_fetch_assoc($topCustomersResult)) {
 }
 
 // Vehicle status distribution
-$statusQuery = "SELECT 
-    CASE 
-        WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
-       
-       
-        WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
-        ELSE 'Rezervirano'
-    END as Status,
-    COUNT(*) as Broj
-FROM vozila
-GROUP BY 
-    CASE 
-        WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
-       
-       
-        WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
-        ELSE 'Ostalo'
-    END";
+$statusQuery = "SELECT Raspolozivost as Status, COUNT(*) as Broj
+                FROM vozila
+                GROUP BY Raspolozivost
+                ORDER BY FIELD(Raspolozivost, 'Dostupno', 'Rezervirano', 'Nije dostupno')";
 
 $statusResult = mysqli_query($db, $statusQuery);
 $statusData = [];

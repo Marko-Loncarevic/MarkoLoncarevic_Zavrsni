@@ -1,4 +1,11 @@
 <!doctype html>
+<?php
+session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
+?>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -24,6 +31,7 @@
             --status-active: #88B49A;
             --status-completed: #D98B8B;
             --status-cancelled: #C48B7C;
+            --status-reserved: #D4A574;
         }
 
         body {
@@ -125,6 +133,10 @@
         }
         .status-otkazana {
             background-color: var(--status-cancelled);
+            color: white;
+        }
+        .status-rezervirano {
+            background-color: var(--status-reserved);
             color: white;
         }
 
@@ -234,6 +246,15 @@
             border-radius: 8px;
             padding: 0.4rem 0.7rem;
         }
+        .btn-outline-primary {
+            color: var(--accent-green);
+            border-color: var(--accent-light);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
         .btn-outline-danger {
             color: var(--status-cancelled);
             border-color: var(--accent-light);
@@ -287,34 +308,31 @@
 <?php
         include("db__connection.php");
         
-        // Update statuses
-        $currentDate = date('Y-m-d');
-        
-        $updateQuery = "UPDATE rezervacije r
-                       JOIN vozila v ON r.VoziloID = v.IDVozilo
-                       SET r.StatusRezervacije = 'Zavrsena', 
-                           v.Raspolozivost = 'Dostupno'
-                       WHERE r.StatusRezervacije = 'Aktivna' 
-                       AND r.DatumZavrsetka < ?";
-        $stmt = mysqli_prepare($db, $updateQuery);
-        if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "s", $currentDate);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        }
-        
-        $updateQuery2 = "UPDATE rezervacije r
-                        JOIN vozila v ON r.VoziloID = v.IDVozilo
-                        SET r.StatusRezervacije = 'Aktivna',
-                            v.Raspolozivost = 'Rezervirano'
-                        WHERE r.StatusRezervacije = 'Zavrsena' 
-                        AND r.DatumZavrsetka >= ?";
-        $stmt2 = mysqli_prepare($db, $updateQuery2);
-        if ($stmt2) {
-            mysqli_stmt_bind_param($stmt2, "s", $currentDate);
-            mysqli_stmt_execute($stmt2);
-            mysqli_stmt_close($stmt2);
-        }
+        // Auto-update reservation statuses and sync vozila.Raspolozivost
+
+        // 1. Past reservations → Zavrsena, vehicle → Dostupno
+        mysqli_query($db, "UPDATE rezervacije r
+                           JOIN vozila v ON r.VoziloID = v.IDVozilo
+                           SET r.StatusRezervacije = 'Zavrsena',
+                               v.Raspolozivost = 'Dostupno'
+                           WHERE LOWER(r.StatusRezervacije) IN ('aktivna','rezervirano')
+                           AND r.DatumZavrsetka < NOW()");
+
+        // 2. Future reservations → Rezervirano, vehicle → Rezervirano
+        mysqli_query($db, "UPDATE rezervacije r
+                           JOIN vozila v ON r.VoziloID = v.IDVozilo
+                           SET r.StatusRezervacije = 'Rezervirano',
+                               v.Raspolozivost = 'Rezervirano'
+                           WHERE LOWER(r.StatusRezervacije) = 'aktivna'
+                           AND r.DatumPocetka > NOW()");
+
+        // 3. Ongoing reservations → Aktivna, vehicle → Nije dostupno
+        mysqli_query($db, "UPDATE rezervacije r
+                           JOIN vozila v ON r.VoziloID = v.IDVozilo
+                           SET r.StatusRezervacije = 'Aktivna',
+                               v.Raspolozivost = 'Nije dostupno'
+                           WHERE LOWER(r.StatusRezervacije) = 'rezervirano'
+                           AND NOW() BETWEEN r.DatumPocetka AND r.DatumZavrsetka");
 
         // Get statistics - FIXED: Removed special character from column alias
         $statsQuery = "SELECT 
@@ -324,7 +342,7 @@
             COALESCE(SUM(CASE WHEN StatusRezervacije = 'Zavrsena' THEN UkupnaCijena END), 0) as ZavrsenaProdaja,
             COALESCE(SUM(UkupnaCijena), 0) as UkupniPrihod,
             COALESCE(AVG(UkupnaCijena), 0) as ProsjecnaCijena,
-            COUNT(CASE WHEN StatusRezervacije = 'Aktivna' AND DatumPocetka > NOW() THEN 1 END) as PredstojeceRezervacije
+            COUNT(CASE WHEN StatusRezervacije = 'Rezervirano' THEN 1 END) as PredstojeceRezervacije
         FROM rezervacije";
         $statsResult = mysqli_query($db, $statsQuery);
         
@@ -397,9 +415,10 @@
                 <label class="form-label">Status</label>
                 <select class="form-select" name="status">
                     <option value="">Svi statusi</option>
-                    <option value="Aktivna" <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna') ? 'selected' : '' ?>>Aktivna</option>
-                    <option value="Zavrsena" <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena') ? 'selected' : '' ?>>Završena</option>
-                  y
+                    <option value="Aktivna"     <?= (isset($_GET['status']) && $_GET['status'] == 'Aktivna')     ? 'selected' : '' ?>>Aktivna</option>
+                    <option value="Rezervirano" <?= (isset($_GET['status']) && $_GET['status'] == 'Rezervirano') ? 'selected' : '' ?>>Rezervirano</option>
+                    <option value="Zavrsena"    <?= (isset($_GET['status']) && $_GET['status'] == 'Zavrsena')    ? 'selected' : '' ?>>Završena</option>
+                    <option value="Otkazana"    <?= (isset($_GET['status']) && $_GET['status'] == 'Otkazana')    ? 'selected' : '' ?>>Otkazana</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -548,8 +567,16 @@
                                     $formattedStartDate = $startDate->format('d.m.Y');
                                     $formattedEndDate = $endDate->format('d.m.Y');
                                     
-                                    // Determine status class
-                                    $statusClass = strtolower($row['StatusRezervacije']);
+                                    // Determine status class and label
+                                    $statusVal = $row['StatusRezervacije'];
+                                    $statusClass = strtolower($statusVal);
+                                    $statusLabels = [
+                                        'Aktivna'     => 'Aktivna',
+                                        'Rezervirano' => 'Rezervirano',
+                                        'Zavrsena'    => 'Završena',
+                                        'Otkazana'    => 'Otkazana',
+                                    ];
+                                    $statusLabel = $statusLabels[$statusVal] ?? ucfirst($statusVal);
                                     
                                     echo "<tr>
                                         <td>{$row['IDRezervacija']}</td>
@@ -561,19 +588,51 @@
                                         <td>" . number_format($row['UkupnaCijena'], 2) . " €</td>
                                         <td>
                                             <span class='status-badge status-{$statusClass}'>
-                                                " . ucfirst($row['StatusRezervacije']) . "
+                                                {$statusLabel}
                                             </span>
                                         </td>
-                                        <td>";
+                                        <td class='action-btns'>";
                                     
-                                    // Only show "Cancel" button if the reservation is active
-                                    if ($row['StatusRezervacije'] == 'Aktivna') {
-                                        echo "<a href='otkazi_rezervaciju.php?id={$row['IDRezervacija']}' 
-                                            class='btn btn-sm btn-outline-danger' 
-                                            title='Otkaži' 
-                                            onclick=\"return confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')\">
-                                            <i class='fas fa-trash-alt'></i>
-                                        </a>";
+                                    // Edit button for active or reserved reservations
+                                    if (in_array($statusVal, ['Aktivna', 'Rezervirano'])) {
+                                        $voziloInfo   = htmlspecialchars(addslashes($row['VoziloNaziv'] . ' ' . $row['VoziloModel']));
+                                        $korisnikInfo = htmlspecialchars(addslashes($row['ImeKorisnika'] . ' ' . $row['PrezimeKorisnika']));
+                                        $odKada       = date('Y-m-d\TH:i', strtotime($row['DatumPocetka']));
+                                        $doKada       = date('Y-m-d\TH:i', strtotime($row['DatumZavrsetka']));
+                                        $cijena       = number_format($row['UkupnaCijena'], 2, '.', '');
+                                        echo "<button class='btn btn-sm btn-outline-primary' title='Uredi'
+                                                onclick=\"openEditModal(
+                                                    {$row['IDRezervacija']},
+                                                    '{$voziloInfo}',
+                                                    '{$korisnikInfo}',
+                                                    '{$odKada}',
+                                                    '{$doKada}',
+                                                    '{$cijena}',
+                                                    '{$statusVal}'
+                                                )\">
+                                                <i class='fas fa-edit'></i>
+                                              </button> ";
+                                    }
+                                    
+                                    // Cancel button for active/reserved, delete button for completed/cancelled
+                                    if (in_array($statusVal, ['Aktivna', 'Rezervirano'])) {
+                                        echo "<form method='POST' action='otkazi_rezervaciju.php' style='display:inline;'
+                                                onsubmit=\"return confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')\">
+                                                <input type='hidden' name='id' value='{$row['IDRezervacija']}'>
+                                                <input type='hidden' name='csrf_token' value='" . htmlspecialchars($csrf) . "'>
+                                                <button type='submit' class='btn btn-sm btn-outline-danger' title='Otkaži'>
+                                                    <i class='fas fa-ban'></i>
+                                                </button>
+                                              </form>";
+                                    } elseif (in_array($statusVal, ['Zavrsena', 'Otkazana'])) {
+                                        echo "<form method='POST' action='obrisi_rezervaciju.php' style='display:inline;'
+                                                onsubmit=\"return confirm('Jeste li sigurni da želite trajno obrisati ovu rezervaciju?')\">
+                                                <input type='hidden' name='id' value='{$row['IDRezervacija']}'>
+                                                <input type='hidden' name='csrf_token' value='" . htmlspecialchars($csrf) . "'>
+                                                <button type='submit' class='btn btn-sm btn-outline-danger' title='Obriši'>
+                                                    <i class='fas fa-trash-alt'></i>
+                                                </button>
+                                              </form>";
                                     } else {
                                         echo "<span class='text-muted'>-</span>";
                                     }
@@ -600,15 +659,84 @@
         </div>
     </div>
 
+    <!-- Edit Reservation Modal -->
+    <div class="modal fade" id="editRezervacijaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px; border:1px solid #C8D5B9;">
+                <form action="uredi_rezervaciju.php" method="POST">
+                    <input type="hidden" name="id" id="editRezId">
+                    <div class="modal-header" style="border-bottom:1px solid #C8D5B9; background:#fff; border-radius:16px 16px 0 0;">
+                        <h5 class="modal-title" style="font-family:'Outfit',sans-serif; color:#3d4a3e;">
+                            <i class="fas fa-edit me-2" style="color:#8FA67E;"></i>
+                            Uredi rezervaciju <span id="editRezTitle" style="color:#8FA67E;"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" style="padding:1.5rem;">
+                        <!-- Info box -->
+                        <div style="background:#E8EDE7; border-radius:10px; padding:0.85rem 1rem; border:1px solid #C8D5B9; margin-bottom:1.25rem; font-size:0.9rem; color:#3d4a3e;">
+                            <div><i class="fas fa-car me-1" style="color:#8FA67E;"></i> <strong id="editVoziloInfo"></strong></div>
+                            <div class="mt-1"><i class="fas fa-user me-1" style="color:#8FA67E;"></i> <span id="editKorisnikInfo"></span></div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Od kada <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="odKada" id="editOdKada" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Do kada <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="doKada" id="editDoKada" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Ukupna cijena (€)</label>
+                                <input type="number" step="0.01" class="form-control" name="ukupnaCijena" id="editCijena" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" name="status" id="editStatus" required>
+                                    <option value="Aktivna">Aktivna</option>
+                                    <option value="Rezervirano">Rezervirano</option>
+                                    <option value="Zavrsena">Završena</option>
+                                    <option value="Otkazana">Otkazana</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #C8D5B9; background:#fff; border-radius:0 0 16px 16px;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                        <button type="submit" class="btn btn-primary" style="background:#68896B; border:none;">
+                            <i class="fas fa-save me-1"></i> Spremi promjene
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Auto-hide alerts after 5 seconds
         setTimeout(function() {
             var alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
                 new bootstrap.Alert(alert).close();
             });
         }, 5000);
+
+        function openEditModal(id, vozilo, korisnik, odKada, doKada, cijena, status) {
+            document.getElementById('editRezId').value       = id;
+            document.getElementById('editRezTitle').textContent = '#' + id;
+            document.getElementById('editVoziloInfo').textContent = vozilo;
+            document.getElementById('editKorisnikInfo').textContent = korisnik;
+            document.getElementById('editOdKada').value     = odKada;
+            document.getElementById('editDoKada').value     = doKada;
+            document.getElementById('editCijena').value     = cijena;
+            document.getElementById('editStatus').value     = status;
+            new bootstrap.Modal(document.getElementById('editRezervacijaModal')).show();
+        }
     </script>
 </body>
 </html>

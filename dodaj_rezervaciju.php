@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $korisnikID = mysqli_insert_id($db);
         }
         
-        // Check if vehicle is available
+        // Check if vehicle exists
         $checkVehicleQuery = "SELECT Raspolozivost FROM vozila WHERE IDVozilo = ?";
         $stmt = mysqli_prepare($db, $checkVehicleQuery);
         mysqli_stmt_bind_param($stmt, "i", $voziloID);
@@ -67,21 +67,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = mysqli_stmt_get_result($stmt);
         $vehicle = mysqli_fetch_assoc($result);
         
-        if (!$vehicle || $vehicle['Raspolozivost'] != 'Dostupno') {
-            throw new Exception("Vozilo nije dostupno za rezervaciju");
+        if (!$vehicle) {
+            throw new Exception("Vozilo nije pronađeno");
         }
         
-        // Check for overlapping reservations
+        // Only block if vehicle is permanently unavailable (manual 'Nije dostupno')
+        // Check: is the vehicle marked unavailable AND has an active reservation covering today?
+        // If unavailable only because of today's active reservation, we still check overlaps below.
+        // If manually set to unavailable with no active reservations, block it.
+        if ($vehicle['Raspolozivost'] == 'Nije dostupno') {
+            $activeNowQuery = "SELECT COUNT(*) as cnt FROM rezervacije 
+                               WHERE VoziloID = ? AND LOWER(StatusRezervacije) = 'aktivna'
+                               AND CURDATE() BETWEEN DATE(DatumPocetka) AND DATE(DatumZavrsetka)";
+            $stmt = mysqli_prepare($db, $activeNowQuery);
+            mysqli_stmt_bind_param($stmt, "i", $voziloID);
+            mysqli_stmt_execute($stmt);
+            $activeNowResult = mysqli_stmt_get_result($stmt);
+            $activeNow = mysqli_fetch_assoc($activeNowResult);
+            if ($activeNow['cnt'] == 0) {
+                throw new Exception("Vozilo nije dostupno za rezervaciju");
+            }
+        }
+        
+        // Check for overlapping reservations (standard interval overlap)
         $checkOverlapQuery = "SELECT COUNT(*) as count FROM rezervacije 
                              WHERE VoziloID = ? 
-                             AND StatusRezervacije = 'Aktivna'
-                             AND (
-                                 (DatumPocetka <= ? AND DatumZavrsetka >= ?) OR
-                                 (DatumPocetka <= ? AND DatumZavrsetka >= ?) OR
-                                 (DatumPocetka >= ? AND DatumZavrsetka <= ?)
-                             )";
+                             AND LOWER(StatusRezervacije) = 'aktivna'
+                             AND DatumPocetka < ? AND DatumZavrsetka > ?";
         $stmt = mysqli_prepare($db, $checkOverlapQuery);
-        mysqli_stmt_bind_param($stmt, "issssss", $voziloID, $odKada, $odKada, $doKada, $doKada, $odKada, $doKada);
+        mysqli_stmt_bind_param($stmt, "iss", $voziloID, $doKada, $odKada);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $overlap = mysqli_fetch_assoc($result);
@@ -102,8 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception("Greška prilikom kreiranja rezervacije");
         }
         
-        // Vehicle status is computed dynamically from reservations in pregled_vozila.php,
-        // so no need to update vozila.Raspolozivost here.
+        // Update vehicle status
+        // If reservation starts in the future → Rezervirano, if it starts now → Nije dostupno
+        $newVehicleStatus = (strtotime($odKada) > time()) ? 'Rezervirano' : 'Nije dostupno';
+        $updateVehicleQuery = "UPDATE vozila SET Raspolozivost = ? WHERE IDVozilo = ?";
+        $stmt = mysqli_prepare($db, $updateVehicleQuery);
+        mysqli_stmt_bind_param($stmt, "si", $newVehicleStatus, $voziloID);
+        mysqli_stmt_execute($stmt);
         
         // Commit transaction
         mysqli_commit($db);

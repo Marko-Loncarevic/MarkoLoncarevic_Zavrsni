@@ -1,4 +1,11 @@
 <!doctype html>
+<?php
+session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
+?>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -583,25 +590,31 @@
 
         <!-- Add Vehicle Modal -->
         <div class="modal fade" id="addVehicleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Dodaj novo vozilo</h5>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius:16px; border:1px solid #C8D5B9;">
+                    <div class="modal-header" style="border-bottom:1px solid #C8D5B9; background:#fff; border-radius:16px 16px 0 0;">
+                        <h5 class="modal-title" style="font-family:'Outfit',sans-serif; color:#3d4a3e;">
+                            <i class="fas fa-plus me-2" style="color:#8FA67E;"></i>Dodaj novo vozilo
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" style="padding:1.5rem;">
                         <form id="addVehicleForm" action="dodaj_vozilo.php" method="POST" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="nazivVozila" class="form-label">Naziv vozila</label>
-                                <input type="text" class="form-control" id="nazivVozila" name="nazivVozila" maxlength="25" required>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label for="nazivVozila" class="form-label fw-semibold" style="font-size:0.88rem;">Naziv vozila <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nazivVozila" name="nazivVozila" maxlength="25" required placeholder="npr. Volkswagen"
+                                           style="border-radius:10px; border:1px solid #C8D5B9;">
+                                </div>
+                                <div class="col-6">
+                                    <label for="modelVozila" class="form-label fw-semibold" style="font-size:0.88rem;">Model vozila</label>
+                                    <input type="text" class="form-control" id="modelVozila" name="modelVozila" maxlength="25" placeholder="npr. Golf 8"
+                                           style="border-radius:10px; border:1px solid #C8D5B9;">
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label for="modelVozila" class="form-label">Model vozila</label>
-                                <input type="text" class="form-control" id="modelVozila" name="modelVozila" maxlength="25">
-                            </div>
-                            <div class="mb-3">
-                                <label for="tipVozila" class="form-label">Tip vozila</label>
-                                <select class="form-select" id="tipVozila" name="tipVozila">
+                                <label for="tipVozila" class="form-label fw-semibold" style="font-size:0.88rem;">Tip vozila</label>
+                                <select class="form-select" id="tipVozila" name="tipVozila" style="border-radius:10px; border:1px solid #C8D5B9;">
                                     <option value="Gradski">Gradski</option>
                                     <option value="Kompakt">Kompakt</option>
                                     <option value="Limuzina" selected>Limuzina</option>
@@ -614,31 +627,59 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="cijenaVozila" class="form-label">Cijena korištenja dnevno</label>
-                                <input type="number" step="0.01" class="form-control" id="cijenaVozila" name="cijenaVozila" required>
+                                <label for="cijenaVozila" class="form-label fw-semibold" style="font-size:0.88rem;">Cijena korištenja dnevno <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="border-radius:10px 0 0 10px; border-color:#C8D5B9; background:#E8EDE7; color:#68896B; font-weight:600;">€</span>
+                                    <input type="text" class="form-control" id="cijenaVozila" name="cijenaVozila"
+                                           placeholder="0,00" required inputmode="decimal"
+                                           pattern="^\d{1,6}([.,]\d{0,2})?$"
+                                           title="Unesite iznos u eurima, npr. 45,00"
+                                           style="border-radius:0 10px 10px 0; border-color:#C8D5B9;">
+                                </div>
+                                <div class="invalid-feedback">Unesite ispravnu cijenu (npr. 45,00)</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label for="godiste" class="form-label fw-semibold" style="font-size:0.88rem;">Godina proizvodnje</label>
+                                    <input type="text" class="form-control" id="godiste" name="godiste"
+                                           placeholder="npr. 2021" maxlength="4" inputmode="numeric"
+                                           style="border-radius:10px; border:1px solid #C8D5B9;">
+                                    <div class="invalid-feedback">Unesite ispravnu godinu (npr. 2021)</div>
+                                </div>
+                                <div class="col-6">
+                                    <label for="kilometraza" class="form-label fw-semibold" style="font-size:0.88rem;">Kilometraža</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="kilometraza" name="kilometraza"
+                                               placeholder="npr. 45000" inputmode="numeric"
+                                               style="border-radius:10px 0 0 10px; border-color:#C8D5B9;">
+                                        <span class="input-group-text" style="border-radius:0 10px 10px 0; border-color:#C8D5B9; background:#E8EDE7; color:#68896B; font-weight:600;">km</span>
+                                    </div>
+                                    <div class="invalid-feedback">Unesite broj kilometara (samo brojevi)</div>
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label for="godiste" class="form-label">Godina proizvodnje</label>
-                                <input type="text" class="form-control" id="godiste" name="godiste">
+                                <label for="registracija" class="form-label fw-semibold" style="font-size:0.88rem;">Registracija</label>
+                                <input type="text" class="form-control" id="registracija" name="registracija"
+                                       placeholder="npr. ZG-1234-AB" maxlength="15"
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       style="border-radius:10px; border:1px solid #C8D5B9; text-transform:uppercase;">
+                                <small style="color:#6B7B6E; font-size:0.8rem;">Format: ZG-1234-AB</small>
                             </div>
-                            <div class="mb-3">
-                                <label for="kilometraza" class="form-label">Prijeđenih kilometara</label>
-                                <input type="number" class="form-control" id="kilometraza" name="kilometraza">
-                            </div>
-                            <div class="mb-3">
-                                <label for="registracija" class="form-label">Registracija</label>
-                                <input type="text" class="form-control" id="registracija" name="registracija">
-                            </div>
-                            <div class="mb-3">
-                                <label for="vehicle_photo" class="form-label">Slika vozila</label>
-                                <input type="file" class="form-control" id="vehicle_photo" name="vehicle_photo" accept="image/*">
-                                <small class="text-muted">Podržani formati: JPG, PNG, GIF, WEBP (max 5MB)</small>
+                            <div class="mb-1">
+                                <label for="vehicle_photo" class="form-label fw-semibold" style="font-size:0.88rem;">Slika vozila</label>
+                                <input type="file" class="form-control" id="vehicle_photo" name="vehicle_photo" accept="image/*"
+                                       style="border-radius:10px; border:1px solid #C8D5B9;">
+                                <small style="color:#6B7B6E; font-size:0.8rem;">JPG, PNG, GIF, WEBP · max 5MB</small>
                             </div>
                         </form>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zatvori</button>
-                        <button type="submit" form="addVehicleForm" class="btn btn-primary">Spremi vozilo</button>
+                    <div class="modal-footer" style="border-top:1px solid #C8D5B9; background:#fff; border-radius:0 0 16px 16px;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                style="background:#E8EDE7; border:none; color:#3d4a3e; border-radius:10px;">Odustani</button>
+                        <button type="submit" form="addVehicleForm" class="btn btn-primary"
+                                style="background:#68896B; border:none; border-radius:10px;">
+                            <i class="fas fa-plus me-1"></i> Dodaj vozilo
+                        </button>
                     </div>
                 </div>
             </div>
@@ -698,17 +739,22 @@
                         </thead>
                         <tbody>
                             <?php
-                            // Reset all vehicles to available first
-                            $resetStatusQuery = "UPDATE vozila SET Raspolozivost = 'Dostupno'";
-                            mysqli_query($db, $resetStatusQuery);
-
-                            // Mark vehicles as unavailable if they have an active reservation covering today
-                            $unavailableQuery = "UPDATE vozila v
-                                                 JOIN rezervacije r ON v.IDVozilo = r.VoziloID 
-                                                 SET v.Raspolozivost = 'Nije dostupno'
-                                                 WHERE LOWER(r.StatusRezervacije) = 'aktivna'
-                                                   AND CURDATE() BETWEEN DATE(r.DatumPocetka) AND DATE(r.DatumZavrsetka)";
-                            mysqli_query($db, $unavailableQuery);
+                            // Sync vozila.Raspolozivost from rezervacije table
+                            // 1. Reset all to Dostupno
+                            mysqli_query($db, "UPDATE vozila SET Raspolozivost = 'Dostupno'");
+                            // 2. Vehicles with an ongoing active reservation → Nije dostupno
+                            mysqli_query($db, "UPDATE vozila v
+                                               JOIN rezervacije r ON v.IDVozilo = r.VoziloID
+                                               SET v.Raspolozivost = 'Nije dostupno'
+                                               WHERE LOWER(r.StatusRezervacije) = 'aktivna'
+                                               AND NOW() BETWEEN r.DatumPocetka AND r.DatumZavrsetka");
+                            // 3. Vehicles with a future reservation (not currently in use) → Rezervirano
+                            mysqli_query($db, "UPDATE vozila v
+                                               JOIN rezervacije r ON v.IDVozilo = r.VoziloID
+                                               SET v.Raspolozivost = 'Rezervirano'
+                                               WHERE v.Raspolozivost = 'Dostupno'
+                                               AND LOWER(r.StatusRezervacije) IN ('aktivna','rezervirano')
+                                               AND r.DatumPocetka > NOW()");
 
                             $query = "SELECT 
                                 v.IDVozilo, v.Naziv, v.Model, v.TipVozila, v.CijenaKoristenjaDnevno, v.Raspolozivost,
@@ -716,26 +762,17 @@
                                 COUNT(r.IDRezervacija) AS BrojRezervacija,
                                 SUM(DATEDIFF(r.DatumZavrsetka, r.DatumPocetka)) AS UkupnoDana,
                                 SUM(r.UkupnaCijena) AS UkupnaZarada,
-                                vs.PutanjaSlike AS GlavnaSlika,
-                                (SELECT COUNT(*) FROM rezervacije rf 
-                                 WHERE rf.VoziloID = v.IDVozilo 
-                                   AND LOWER(rf.StatusRezervacije) = 'aktivna' 
-                                   AND DATE(rf.DatumPocetka) > CURDATE()) AS ImaFutureRezervaciju
+                                vs.PutanjaSlike AS GlavnaSlika
                             FROM vozila v
                             LEFT JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
                             LEFT JOIN rezervacije r ON v.IDVozilo = r.VoziloID
                             LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1";
                             
-                            // Add filter conditions
+                            // Filter
                             $whereClauses = [];
                             $selectedStatus = $_GET['status'] ?? '';
-                            if ($selectedStatus === 'Dostupno') {
-                                $whereClauses[] = "v.Raspolozivost = 'Dostupno'";
-                            } elseif ($selectedStatus === 'Rezervirano') {
-                                $whereClauses[] = "v.Raspolozivost = 'Dostupno'";
-                                // Will add HAVING clause after GROUP BY
-                            } elseif ($selectedStatus === 'Nije dostupno') {
-                                $whereClauses[] = "v.Raspolozivost = 'Nije dostupno'";
+                            if ($selectedStatus !== '') {
+                                $whereClauses[] = "v.Raspolozivost = '" . mysqli_real_escape_string($db, $selectedStatus) . "'";
                             }
                             if (!empty($_GET['tip_vozila'])) {
                                 $whereClauses[] = "v.TipVozila = '" . mysqli_real_escape_string($db, $_GET['tip_vozila']) . "'";
@@ -746,7 +783,6 @@
                             if (!empty($_GET['price_to'])) {
                                 $whereClauses[] = "v.CijenaKoristenjaDnevno <= " . floatval($_GET['price_to']);
                             }
-                            
                             if (!empty($whereClauses)) {
                                 $query .= " WHERE " . implode(" AND ", $whereClauses);
                             }
@@ -754,48 +790,31 @@
                             $query .= " GROUP BY v.IDVozilo, v.Naziv, v.Model, v.TipVozila, v.CijenaKoristenjaDnevno, 
                                      v.Raspolozivost, ka.Godiste, ka.Kilometraza, ka.Registracija, vs.PutanjaSlike";
 
-                            // For 'Rezervirano' filter: vehicles that are available now but have a future active reservation
-                            if ($selectedStatus === 'Rezervirano') {
-                                $query .= " HAVING ImaFutureRezervaciju > 0";
-                            }
-                            
-                            // Add sorting
-                            $orderBy = "v.Naziv, v.Model"; // Default sorting
+                            // Sorting
+                            $orderBy = "v.Naziv, v.Model";
                             if (!empty($_GET['sort_by'])) {
                                 switch($_GET['sort_by']) {
-                                    case 'name_asc':
-                                        $orderBy = "v.Naziv ASC, v.Model ASC";
-                                        break;
-                                    case 'name_desc':
-                                        $orderBy = "v.Naziv DESC, v.Model DESC";
-                                        break;
-                                    case 'price_asc':
-                                        $orderBy = "v.CijenaKoristenjaDnevno ASC";
-                                        break;
-                                    case 'price_desc':
-                                        $orderBy = "v.CijenaKoristenjaDnevno DESC";
-                                        break;
+                                    case 'name_asc':  $orderBy = "v.Naziv ASC, v.Model ASC";  break;
+                                    case 'name_desc': $orderBy = "v.Naziv DESC, v.Model DESC"; break;
+                                    case 'price_asc': $orderBy = "v.CijenaKoristenjaDnevno ASC"; break;
+                                    case 'price_desc':$orderBy = "v.CijenaKoristenjaDnevno DESC"; break;
                                 }
                             }
-                            
                             $query .= " ORDER BY " . $orderBy;
 
                             $result = mysqli_query($db, $query) or die("Greška u SQL upitu: " . mysqli_error($db));
                             
                             while ($row = mysqli_fetch_assoc($result)): 
-                                $status = $row['Raspolozivost'] ?? 'Nije dostupno';
-                                $statusClass = '';
-                                $statusText = '';
-                                
-                                if ($status == 'Dostupno' && $row['ImaFutureRezervaciju'] > 0) {
-                                    $statusClass = 'badge-reserved';
-                                    $statusText = 'Rezervirano';
-                                } elseif ($status == 'Dostupno') {
+                                $status = $row['Raspolozivost'];
+                                if ($status === 'Dostupno') {
                                     $statusClass = 'badge-available';
-                                    $statusText = 'Dostupno';
+                                    $statusText  = 'Dostupno';
+                                } elseif ($status === 'Rezervirano') {
+                                    $statusClass = 'badge-reserved';
+                                    $statusText  = 'Rezervirano';
                                 } else {
                                     $statusClass = 'badge-unavailable';
-                                    $statusText = 'Nije dostupno';
+                                    $statusText  = 'Nije dostupno';
                                 }
                             ?>
                                 <tr>
@@ -837,17 +856,28 @@
                                                 title="Slike">
                                             <i class="fas fa-images"></i>
                                         </button>
-                                        <a href="edit_vozilo.php?id=<?= $row['IDVozilo'] ?>" 
-                                           class="btn btn-sm btn-outline-primary" 
-                                           title="Uredi">
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                title="Uredi"
+                                                onclick="openEditVozilo(
+                                                    <?= $row['IDVozilo'] ?>,
+                                                    '<?= htmlspecialchars(addslashes($row['Naziv'])) ?>',
+                                                    '<?= htmlspecialchars(addslashes($row['Model'] ?? '')) ?>',
+                                                    <?= floatval($row['CijenaKoristenjaDnevno']) ?>,
+                                                    '<?= htmlspecialchars(addslashes($row['Godiste'] ?? '')) ?>',
+                                                    <?= intval($row['Kilometraza'] ?? 0) ?>,
+                                                    '<?= htmlspecialchars(addslashes($row['Registracija'] ?? '')) ?>',
+                                                    '<?= htmlspecialchars($row['Raspolozivost']) ?>'
+                                                )">
                                             <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="obrisi_vozilo.php?id=<?= $row['IDVozilo'] ?>" 
-                                           class="btn btn-sm btn-outline-danger" 
-                                           title="Obriši" 
-                                           onclick="return confirm('Jeste li sigurni da želite obrisati ovo vozilo?')">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
+                                        </button>
+                                        <form method="POST" action="obrisi_vozilo.php" style="display:inline;"
+                                              onsubmit="return confirm('Jeste li sigurni da želite obrisati ovo vozilo?')">
+                                            <input type="hidden" name="id" value="<?= $row['IDVozilo'] ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Obriši">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
                                         <?php if ($row['BrojRezervacija'] > 0): ?>
                                             <button class="btn btn-sm btn-outline-info" 
                                                     title="Statistika iznajmljivanja"
@@ -868,6 +898,85 @@
         </div>
     </div>
 
+    <!-- Edit Vehicle Modal -->
+    <div class="modal fade" id="editVehicleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px; border:1px solid #C8D5B9;">
+                <form action="edit_vozilo.php" method="POST">
+                    <input type="hidden" name="id" id="editVoziloId">
+                    <div class="modal-header" style="border-bottom:1px solid #C8D5B9; background:#fff; border-radius:16px 16px 0 0;">
+                        <h5 class="modal-title" style="font-family:'Outfit',sans-serif; color:#3d4a3e;">
+                            <i class="fas fa-edit me-2" style="color:#8FA67E;"></i>Uredi vozilo
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" style="padding:1.5rem;">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Naziv <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="naziv" id="editNaziv" maxlength="25" required
+                                       style="border-radius:10px; border:1px solid #C8D5B9;">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Model</label>
+                                <input type="text" class="form-control" name="model" id="editModel" maxlength="25"
+                                       style="border-radius:10px; border:1px solid #C8D5B9;">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:0.88rem;">Cijena/dan <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="border-radius:10px 0 0 10px; border-color:#C8D5B9; background:#E8EDE7; color:#68896B; font-weight:600;">€</span>
+                                <input type="number" step="0.01" class="form-control" name="cijena" id="editCijena" required
+                                       style="border-radius:0 10px 10px 0; border-color:#C8D5B9;">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Godište</label>
+                                <input type="text" class="form-control" name="godiste" id="editGodiste" maxlength="4" inputmode="numeric"
+                                       style="border-radius:10px; border:1px solid #C8D5B9;">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Kilometraža</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="kilometraza" id="editKilometraza"
+                                           style="border-radius:10px 0 0 10px; border-color:#C8D5B9;">
+                                    <span class="input-group-text" style="border-radius:0 10px 10px 0; border-color:#C8D5B9; background:#E8EDE7; color:#68896B; font-weight:600;">km</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Registracija</label>
+                                <input type="text" class="form-control" name="registracija" id="editRegistracija" maxlength="15"
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       style="border-radius:10px; border:1px solid #C8D5B9; text-transform:uppercase;">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold" style="font-size:0.88rem;">Raspoloživost <span class="text-danger">*</span></label>
+                                <select class="form-select" name="raspolozivost" id="editRaspolozivost" required
+                                        style="border-radius:10px; border:1px solid #C8D5B9;">
+                                    <option value="Dostupno">Dostupno</option>
+                                    <option value="Rezervirano">Rezervirano</option>
+                                    <option value="Nije dostupno">Nije dostupno</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #C8D5B9; background:#fff; border-radius:0 0 16px 16px;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                style="background:#E8EDE7; border:none; color:#3d4a3e; border-radius:10px;">Odustani</button>
+                        <button type="submit" class="btn btn-primary"
+                                style="background:#68896B; border:none; border-radius:10px;">
+                            <i class="fas fa-save me-1"></i> Spremi promjene
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         setTimeout(function() {
@@ -883,6 +992,81 @@
                 trigger: 'hover focus'
             });
         });
+
+        // Add vehicle form validation
+        document.getElementById('addVehicleForm').addEventListener('submit', function(e) {
+            let valid = true;
+
+            // Cijena — prihvati zarez ili točku, konvertiraj u točku za PHP
+            const cijenaInput = document.getElementById('cijenaVozila');
+            const cijenaVal = cijenaInput.value.trim().replace(',', '.');
+            if (!/^\d{1,6}(\.\d{0,2})?$/.test(cijenaVal) || parseFloat(cijenaVal) <= 0) {
+                cijenaInput.classList.add('is-invalid');
+                valid = false;
+            } else {
+                cijenaInput.classList.remove('is-invalid');
+                cijenaInput.value = cijenaVal; // normalizirano s točkom
+            }
+
+            // Godište — između 1900 i tekuće godine
+            const godisteInput = document.getElementById('godiste');
+            if (godisteInput.value.trim() !== '') {
+                const g = parseInt(godisteInput.value);
+                const currentYear = new Date().getFullYear();
+                if (isNaN(g) || g < 1900 || g > currentYear) {
+                    godisteInput.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    godisteInput.classList.remove('is-invalid');
+                }
+            }
+
+            // Kilometraža — samo cijeli broj
+            const kmInput = document.getElementById('kilometraza');
+            if (kmInput.value.trim() !== '') {
+                if (!/^\d+$/.test(kmInput.value.trim())) {
+                    kmInput.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    kmInput.classList.remove('is-invalid');
+                }
+            }
+
+            if (!valid) e.preventDefault();
+        });
+
+        // Cijena — live format: dozvoli samo brojeve i zarez/točku
+        document.getElementById('cijenaVozila').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9.,]/g, '');
+        });
+
+        // Kilometraza — samo brojevi
+        document.getElementById('kilometraza').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Godiste — samo brojevi, max 4 znaka
+        document.getElementById('godiste').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+        });
+
+        // Reset validacije kad se modal zatvori
+        document.getElementById('addVehicleModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('addVehicleForm').reset();
+            document.querySelectorAll('#addVehicleForm .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        });
+
+        function openEditVozilo(id, naziv, model, cijena, godiste, kilometraza, registracija, raspolozivost) {
+            document.getElementById('editVoziloId').value        = id;
+            document.getElementById('editNaziv').value           = naziv;
+            document.getElementById('editModel').value           = model;
+            document.getElementById('editCijena').value          = cijena;
+            document.getElementById('editGodiste').value         = godiste;
+            document.getElementById('editKilometraza').value     = kilometraza;
+            document.getElementById('editRegistracija').value    = registracija;
+            document.getElementById('editRaspolozivost').value   = raspolozivost;
+            new bootstrap.Modal(document.getElementById('editVehicleModal')).show();
+        }
 
         function openPhotoGallery(vehicleId) {
             document.getElementById('galleryVehicleId').value = vehicleId;

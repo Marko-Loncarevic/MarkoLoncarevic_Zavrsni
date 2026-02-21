@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <title>Pregled vozila · AutoRent</title>
+    <title>Rent a car</title>
     <style>
         /* ===== MODERN PASTEL PALETTE ===== 
            #E8EDE7  (soft cream/beige background)
@@ -161,6 +161,10 @@
         .status-available {
             background: rgba(200, 213, 185, 0.95);
             color: #3d4a3e;
+        }
+        .status-reserved {
+            background: rgba(212, 165, 116, 0.95);
+            color: #ffffff;
         }
         .status-unavailable {
             background: rgba(160, 147, 125, 0.95);
@@ -395,11 +399,14 @@ if (isset($_GET['error'])) {
             CASE WHEN EXISTS (
                 SELECT 1 FROM rezervacije r 
                 WHERE r.VoziloID = v.IDVozilo 
-                AND (
-                    (r.DatumPocetka <= NOW() AND r.DatumZavrsetka >= NOW()) OR
-                    (r.DatumPocetka >= NOW())
-                )
-            ) THEN 1 ELSE 0 END AS ImaAktivnuRezervaciju
+                AND LOWER(r.StatusRezervacije) = 'aktivna'
+                AND r.DatumPocetka <= NOW() AND r.DatumZavrsetka >= NOW()
+            ) THEN 1 ELSE 0 END AS ImaAktivnuRezervaciju,
+            (SELECT MIN(r2.DatumPocetka) FROM rezervacije r2
+             WHERE r2.VoziloID = v.IDVozilo
+             AND LOWER(r2.StatusRezervacije) IN ('aktivna','rezervirano')
+             AND r2.DatumPocetka > NOW()
+            ) AS SljedeciPocetakRezervacije
         FROM vozila v
         JOIN karakteristike_automobila ka ON v.IDVozilo = ka.VoziloID
         LEFT JOIN vozila_slike vs ON v.IDVozilo = vs.VoziloID AND vs.JeGlavna = 1";
@@ -407,15 +414,36 @@ if (isset($_GET['error'])) {
         $result = mysqli_query($db, $query) or die("Greška u SQL upitu: " . mysqli_error($db));
 
         while ($row = mysqli_fetch_array($result)) {
-            $isAvailable = $row["Raspolozivost"] && !$row["ImaAktivnuRezervaciju"];
-            $statusText = $isAvailable ? 'Dostupno' : 'Nedostupno';
-            $statusClass = $isAvailable ? 'status-available' : 'status-unavailable';
+            // Vehicle is unavailable only if it has an active (ongoing) reservation right now
+            $isUnavailable = ($row['Raspolozivost'] == 'Nije dostupno') || $row['ImaAktivnuRezervaciju'];
+            // Vehicle is reserved if it's available now but has a future reservation
+            $isReserved = !$isUnavailable && !empty($row['SljedeciPocetakRezervacije']);
+            $isAvailable = !$isUnavailable;
+
+            if ($isUnavailable) {
+                $statusText  = 'Nedostupno';
+                $statusClass = 'status-unavailable';
+            } elseif ($isReserved) {
+                $statusText  = 'Rezervirano';
+                $statusClass = 'status-reserved';
+            } else {
+                $statusText  = 'Dostupno';
+                $statusClass = 'status-available';
+            }
+
+            // Max date for booking = day before next reservation starts (if any)
+            $maxDate = '';
+            if ($isReserved && !empty($row['SljedeciPocetakRezervacije'])) {
+                // Subtract 1 minute so they can't overlap with the next reservation
+                $maxDate = date('Y-m-d\TH:i', strtotime($row['SljedeciPocetakRezervacije']) - 60);
+            }
             
             echo '
             <div class="vehicle-card" data-id="' . $row["IDVozilo"] . '" 
                  data-name="' . htmlspecialchars($row["Naziv"] . ' ' . $row["Model"]) . '" 
                  data-price="' . $row["CijenaKoristenjaDnevno"] . '"
-                 data-available="' . ($isAvailable ? '1' : '0') . '">
+                 data-available="' . ($isAvailable ? '1' : '0') . '"
+                 data-max-date="' . htmlspecialchars($maxDate) . '">
                 
                 <div class="card-image-wrapper">
                     <div class="status-badge-card ' . $statusClass . '">' . $statusText . '</div>';
@@ -447,7 +475,15 @@ if (isset($_GET['error'])) {
                     €' . number_format($row["CijenaKoristenjaDnevno"], 2) . ' <small>/dan</small>
                   </div>';
 
-            echo '<button class="btn-reserve" ' . (!$isAvailable ? 'disabled' : '') . '>
+            // Show availability notice for reserved vehicles
+            if ($isReserved && !empty($row['SljedeciPocetakRezervacije'])) {
+                $dostupnoDo = date('d.m.Y H:i', strtotime($row['SljedeciPocetakRezervacije']));
+                echo '<div style="font-size:0.82rem; color:#A0937D; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem;">
+                        <i class="fas fa-clock"></i> Dostupno do ' . $dostupnoDo . '
+                      </div>';
+            }
+
+            echo '<button class="btn-reserve" ' . ($isUnavailable ? 'disabled' : '') . '>
                     <i class="fas fa-calendar-check me-2"></i> Rezerviraj vozilo
                   </button>
                 </div> <!-- end card-body -->
@@ -498,6 +534,7 @@ if (isset($_GET['error'])) {
           <div class="mb-3">
             <label for="doKada" class="form-label">Do kada</label>
             <input type="datetime-local" class="form-control" id="doKada" name="doKada" required>
+            <div id="maxDateNote" style="display:none; font-size:0.82rem; color:#A0937D; margin-top:0.4rem; background:#fff8f0; border:1px solid #D4A574; border-radius:8px; padding:0.5rem 0.75rem;"></div>
           </div>
           <div class="mb-3">
             <label for="ukupnaCijena" class="form-label">Ukupna cijena (€)</label>
@@ -527,11 +564,38 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
             
-            const vehicleId = card.getAttribute("data-id");
+            const vehicleId    = card.getAttribute("data-id");
             const vehiclePrice = card.getAttribute("data-price");
-            
+            const maxDate      = card.getAttribute("data-max-date");
+
             document.getElementById("selectedVehicleId").value = vehicleId;
             document.getElementById("cijenaKoristenjaDnevno").value = vehiclePrice;
+
+            // Block past dates — set min to current datetime
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const nowStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            document.getElementById("odKada").min = nowStr;
+            document.getElementById("doKada").min = nowStr;
+            document.getElementById("odKada").value = '';
+            document.getElementById("doKada").value = '';
+
+            const doKadaInput = document.getElementById("doKada");
+            const maxDateNote = document.getElementById("maxDateNote");
+
+            if (maxDate) {
+                doKadaInput.max = maxDate;
+                const displayDate = new Date(maxDate).toLocaleString('hr-HR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+                maxDateNote.textContent = "⚠ Vozilo je rezervirano od " + displayDate + ". Odabir datuma je ograničen.";
+                maxDateNote.style.display = 'block';
+            } else {
+                doKadaInput.removeAttribute('max');
+                maxDateNote.style.display = 'none';
+                maxDateNote.textContent = '';
+            }
+            
+            // Reset price
+            document.getElementById("ukupnaCijena").value = '';
             
             const reservationModal = new bootstrap.Modal(document.getElementById("addReservationModal"));
             reservationModal.show();
@@ -541,9 +605,16 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('addReservationForm').addEventListener('submit', function(e) {
         const odKada = new Date(document.getElementById('odKada').value);
         const doKada = new Date(document.getElementById('doKada').value);
+        const maxDateVal = document.getElementById('doKada').max;
         
         if (odKada >= doKada) {
             alert('Datum završetka mora biti nakon datuma početka!');
+            e.preventDefault();
+            return;
+        }
+
+        if (maxDateVal && doKada > new Date(maxDateVal)) {
+            alert('Vozilo je već rezervirano. Datum završetka ne smije prelaziti ' + new Date(maxDateVal).toLocaleString('hr-HR') + '.');
             e.preventDefault();
             return;
         }
