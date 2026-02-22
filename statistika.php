@@ -1,4 +1,5 @@
 <!doctype html>
+<?php require_once __DIR__ . "/auth.php"; requireAdmin(); ?>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -7,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Statistika </title>
-    <style>
+   <style>
         /* ===== MODERN PASTEL PALETTE ===== */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
@@ -27,41 +28,92 @@
             --accent-3: #B8A596;
             --accent-4: #D4A574;
             --accent-5: #C48B7C;
+            --border-soft: #e0e5de;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             background-color: var(--bg-secondary);
             font-family: 'Inter', sans-serif;
             color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: #F5F7F4 !important;
+            border-bottom: 1px solid #C8D5B9;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            padding: 1rem 2rem;
+        }
+        .navbar .navbar-brand, .navbar .nav-link {
+            color: #3d4a3e !important;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .navbar .nav-link:hover {
+            color: #68896B !important;
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: #C8D5B9;
+            border: 1px solid #8FA67E;
+            color: #3d4a3e;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .alert-danger {
+            background-color: #f4ddd4;
+            border: 1px solid #d4a49a;
+            color: #5a3d38;
+            border-radius: 12px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            padding: 2rem;
+            margin: 0 auto;
         }
 
         /* Page Header */
         .page-header {
             background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-sage) 100%);
             color: white;
-            padding: 3rem 0;
-            margin-bottom: 3rem;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
             border-radius: 0 0 24px 24px;
         }
         .page-header h1 {
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
             margin: 0;
+            font-size: 2.2rem;
         }
         .page-header p {
             opacity: 0.9;
             margin: 0.5rem 0 0 0;
-        }
-
-        .container {
-            max-width: 1400px;
+            font-size: 1rem;
         }
 
         /* Statistics Cards */
         .stats-card {
             background: var(--white);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.2rem;
             border: 1px solid var(--accent-light);
             transition: all 0.3s;
             height: 100%;
@@ -74,29 +126,29 @@
         }
         .stats-card h6 {
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 600;
             color: var(--text-primary);
             font-family: 'Outfit', sans-serif;
         }
         .stat-subtext {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            margin-top: 0.5rem;
+            margin-top: 0.3rem;
         }
         .stats-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             opacity: 0.1;
             position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
+            right: 1rem;
+            top: 1rem;
             color: var(--text-primary);
         }
         .stats-card-1 { border-left: 4px solid var(--accent-1); }
@@ -109,20 +161,21 @@
         .chart-card {
             background: var(--white);
             border-radius: 16px;
-            padding: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             border: 1px solid var(--accent-light);
         }
         .chart-card h5 {
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 350px;
         }
 
         /* Top Lists */
@@ -132,7 +185,7 @@
             margin: 0;
         }
         .top-list li {
-            padding: 1.25rem;
+            padding: 1rem;
             border-bottom: 1px solid var(--accent-light);
             display: flex;
             justify-content: space-between;
@@ -149,8 +202,8 @@
         .rank-badge {
             background: var(--accent-sage);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -158,6 +211,7 @@
             font-weight: bold;
             margin-right: 1rem;
             font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
         }
         .rank-badge.gold { 
             background: linear-gradient(135deg, #D4A574 0%, #E8B77D 100%); 
@@ -172,28 +226,291 @@
             color: white;
         }
 
-        @media (max-width: 768px) {
-            .page-header {
-                padding: 2rem 0;
-            }
-            .stat-value {
-                font-size: 1.5rem;
-            }
+        /* Vehicle Grid - from second style (compact cards) */
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1.5rem;
         }
-         .navbar {
-            background-color: #F5F7F4 !important;
-            border-bottom: 1px solid #C8D5B9;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            padding: 1rem 2rem;
+
+        /* Modern card design - compact version */
+        .vehicle-card {
+            background-color: #F5F7F4;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e0e5de;
+            display: flex;
+            flex-direction: column;
         }
-        .navbar .navbar-brand, .navbar .nav-link {
-            color: #3d4a3e !important;
-            font-weight: 500;
-            letter-spacing: 0.3px;
+        .vehicle-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+        }
+
+        /* Image wrapper - compact */
+        .card-image-wrapper {
+            height: 160px;
+            position: relative;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .vehicle-card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .vehicle-card:hover .vehicle-card-image {
+            transform: scale(1.05);
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #C8D5B9, #8FA67E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 3rem;
+        }
+
+        /* Status badge */
+        .status-badge-card {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 12px;
+            font-weight: 600;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            text-transform: uppercase;
             font-family: 'Outfit', sans-serif;
         }
-        .navbar .nav-link:hover {
-            color: #68896B !important;
+        .status-available {
+            background: rgba(200, 213, 185, 0.95);
+            color: #3d4a3e;
+        }
+        .status-reserved {
+            background: rgba(212, 165, 116, 0.95);
+            color: #ffffff;
+        }
+        .status-unavailable {
+            background: rgba(160, 147, 125, 0.95);
+            color: #ffffff;
+        }
+
+        .vehicle-card-body {
+            padding: 1.2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vehicle-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 0.4rem;
+            color: #3d4a3e;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+        .vehicle-title span {
+            font-size: 0.7rem;
+            background-color: #E8EDE7;
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: #6B7B6E;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Compact spec list */
+        .spec-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.8rem 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+        .spec-list li {
+            font-size: 0.8rem;
+            color: #3d4a3e;
+            background: #ffffff;
+            padding: 0.5rem 0.6rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e0e5de;
+        }
+        .spec-list li strong {
+            color: #6B7B6E;
+            font-weight: 600;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .spec-list li span {
+            font-weight: 600;
+            color: #3d4a3e;
+            font-size: 0.85rem;
+        }
+
+        /* Compact price tag */
+        .price-tag {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #68896B;
+            line-height: 1;
+            margin: 0.5rem 0 0.8rem 0;
+            font-family: 'Outfit', sans-serif;
+        }
+        .price-tag small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #6B7B6E;
+            margin-left: 0.3rem;
+        }
+
+        /* Clean button design */
+        .btn-reserve {
+            width: 100%;
+            background: #68896B;
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.7rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            transition: all 0.25s;
+            margin-top: auto;
+            font-family: 'Outfit', sans-serif;
+        }
+        .btn-reserve:hover:not(:disabled) {
+            background: #8FA67E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(104, 137, 107, 0.3);
+        }
+        .btn-reserve:disabled {
+            background: #A0937D;
+            color: #ffffff;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Modal - clean and modern */
+        .modal-content {
+            background-color: #F5F7F4;
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal-header {
+            border-bottom: 1px solid #e0e5de;
+            background: #ffffff;
+            border-radius: 24px 24px 0 0;
+            padding: 1.5rem;
+        }
+        .modal-header .modal-title {
+            color: #3d4a3e;
+            font-weight: 600;
+            font-size: 1.5rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-header .btn-close {
+            background-color: #E8EDE7;
+            border-radius: 50%;
+            opacity: 1;
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .modal-body label {
+            color: #3d4a3e;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+        .modal-body .form-control, .modal-body .form-select {
+            background: #ffffff;
+            border: 1px solid #e0e5de;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #3d4a3e;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .modal-body .form-control:focus, .modal-body .form-select:focus {
+            border-color: #8FA67E;
+            box-shadow: 0 0 0 4px rgba(143, 166, 126, 0.1);
+            outline: none;
+        }
+        .modal-footer {
+            border-top: 1px solid #e0e5de;
+            padding: 1.5rem;
+            border-radius: 0 0 24px 24px;
+            background: #ffffff;
+        }
+        .modal-footer .btn {
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-footer .btn-secondary {
+            background: #E8EDE7;
+            color: #3d4a3e;
+        }
+        .modal-footer .btn-secondary:hover {
+            background: #C8D5B9;
+        }
+        .modal-footer .btn-primary {
+            background: #68896B;
+            color: #ffffff;
+        }
+        .modal-footer .btn-primary:hover {
+            background: #8FA67E;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 1.5rem 0;
+            }
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            .stat-value {
+                font-size: 1.3rem;
+            }
+            .container {
+                padding: 0 1rem;
+            }
+            .container-fluid {
+                padding: 1.5rem;
+            }
+            .vehicle-grid { 
+                gap: 1rem;
+                grid-template-columns: 1fr;
+            }
+            .card-image-wrapper {
+                height: 150px;
+            }
         }
     </style>
 </head>
@@ -270,10 +587,24 @@ while ($row = mysqli_fetch_assoc($topCustomersResult)) {
 }
 
 // Vehicle status distribution
-$statusQuery = "SELECT Raspolozivost as Status, COUNT(*) as Broj
-                FROM vozila
-                GROUP BY Raspolozivost
-                ORDER BY FIELD(Raspolozivost, 'Dostupno', 'Rezervirano', 'Nije dostupno')";
+$statusQuery = "SELECT 
+    CASE 
+        WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
+       
+       
+        WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
+        ELSE 'Rezervirano'
+    END as Status,
+    COUNT(*) as Broj
+FROM vozila
+GROUP BY 
+    CASE 
+        WHEN Raspolozivost = 'Dostupno' THEN 'Dostupno'
+       
+       
+        WHEN Raspolozivost = 'Nije dostupno' THEN 'Nije dostupno'
+        ELSE 'Ostalo'
+    END";
 
 $statusResult = mysqli_query($db, $statusQuery);
 $statusData = [];
@@ -372,7 +703,7 @@ $avgRevenue = mysqli_fetch_assoc($avgRevenueResult);
                 $totalVehicles = $stats['TotalVehicles'] ?? 1;
                 $reservedVehicles = 0;
                 foreach ($statusData as $status) {
-                    if ($status['Status'] == 'Rezervirano') {
+                    if ($status['Status'] == 'Nije dostupno') {
                         $reservedVehicles = $status['Broj'];
                     }
                 }

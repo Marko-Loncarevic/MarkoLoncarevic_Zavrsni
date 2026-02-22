@@ -1,6 +1,6 @@
 <!doctype html>
+<?php require_once __DIR__ . "/auth.php"; requireAdmin(); ?>
 <?php
-session_start();
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -419,45 +419,37 @@ $csrf = $_SESSION['csrf_token'];
         </div>
 
         <!-- Add User Modal -->
-       <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:16px; border:1px solid #C8D5B9;">
-            <form action="dodaj_korisnika.php" method="POST">
-                <div class="modal-header" style="border-bottom:1px solid #C8D5B9; background:#fff; border-radius:16px 16px 0 0;">
-                    <h5 class="modal-title" style="font-family:'Outfit',sans-serif; color:#3d4a3e;">
-                        <i class="fas fa-user-plus me-2" style="color:#8FA67E;"></i>
-                        Dodaj novog korisnika
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="dodaj_korisnika.php" method="POST">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Dodaj novog korisnika</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Ime <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="ime" maxlength="25" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Prezime <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="prezime" maxlength="25" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" maxlength="100" placeholder="primjer@email.com">
+                                <small class="text-muted">Email će se koristiti za identifikaciju korisnika</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                            <button type="submit" class="btn btn-primary">Spremi</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-body" style="padding:1.5rem;">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Ime <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="ime" maxlength="25" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Prezime <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="prezime" maxlength="25" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Email</label>
-                        <input type="email" class="form-control" name="email" maxlength="100" placeholder="primjer@email.com">
-                        <small class="text-muted" style="font-size:0.8rem;">Email će se koristiti za identifikaciju korisnika</small>
-                    </div>
-                </div>
-                <div class="modal-footer" style="border-top:1px solid #C8D5B9; background:#fff; border-radius:0 0 16px 16px; padding:1rem;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius:8px;">Odustani</button>
-                    <button type="submit" class="btn btn-primary" style="background:#68896B; border:none; border-radius:8px;">
-                        <i class="fas fa-save me-1"></i> Spremi
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
 
         <!-- Filter Section -->
         <div class="filter-section">
@@ -623,46 +615,42 @@ $csrf = $_SESSION['csrf_token'];
         </div>
     </div>
 
-   <!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:16px; border:1px solid #C8D5B9;">
-            <form action="uredi_korisnika.php" method="POST">
-                <div class="modal-header" style="border-bottom:1px solid #C8D5B9; background:#fff; border-radius:16px 16px 0 0;">
-                    <h5 class="modal-title" style="font-family:'Outfit',sans-serif; color:#3d4a3e;">
-                        <i class="fas fa-edit me-2" style="color:#8FA67E;"></i>
-                        Uredi korisnika
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="padding:1.5rem;">
-                    <input type="hidden" name="id" id="editUserId">
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Ime <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="ime" id="editIme" maxlength="25" required>
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="uredi_korisnika.php" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-edit me-2" style="color:#8FA67E;"></i>Uredi korisnika</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Prezime <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="prezime" id="editPrezime" maxlength="25" required>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editUserId">
+                        <div class="mb-3">
+                            <label class="form-label">Ime <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="ime" id="editIme" maxlength="25" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prezime <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="prezime" id="editPrezime" maxlength="25" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email / Kontakt</label>
+                            <input type="text" class="form-control" name="kontakt" id="editKontakt" maxlength="100">
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.88rem;">Email / Kontakt</label>
-                        <input type="text" class="form-control" name="kontakt" id="editKontakt" maxlength="100">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                style="background:#E8EDE7; border:none; color:#3d4a3e; border-radius:10px;">Odustani</button>
+                        <button type="submit" class="btn btn-primary"
+                                style="background:#68896B; border:none; border-radius:10px;">
+                            <i class="fas fa-save me-1"></i> Spremi promjene
+                        </button>
                     </div>
-                </div>
-                <div class="modal-footer" style="border-top:1px solid #C8D5B9; background:#fff; border-radius:0 0 16px 16px; padding:1rem;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius:8px;">Odustani</button>
-                    <button type="submit" class="btn btn-primary" style="background:#68896B; border:none; border-radius:8px;">
-                        <i class="fas fa-save me-1"></i> Spremi promjene
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>

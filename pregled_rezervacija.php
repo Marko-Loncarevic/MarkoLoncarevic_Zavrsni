@@ -1,6 +1,6 @@
 <!doctype html>
+<?php require_once __DIR__ . "/auth.php"; requireAdmin(); ?>
 <?php
-session_start();
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -280,6 +280,21 @@ $csrf = $_SESSION['csrf_token'];
             padding: 0.4rem 0.8rem;
             border-radius: 8px;
             font-weight: 500;
+        }
+         .navbar {
+            background-color: #F5F7F4 !important;
+            border-bottom: 1px solid #C8D5B9;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            padding: 1rem 2rem;
+        }
+        .navbar .navbar-brand, .navbar .nav-link {
+            color: #3d4a3e !important;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .navbar .nav-link:hover {
+            color: #68896B !important;
         }
     </style>
 </head>
